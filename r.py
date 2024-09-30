@@ -9,6 +9,9 @@ from datasets import load_dataset
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import argparse
+import subprocess
+import time
+import multiprocessing as mp  # Import multiprocessing
 
 from p import (
     get_problem_understanding_template,
@@ -24,6 +27,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
+    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
     return parser.parse_args()
 
 # Load the model and tokenizer
@@ -273,45 +277,74 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
     except Exception:
         return None
 
-if __name__ == "__main__":
-    # Parse the command-line arguments
-    args = parse_args()
+def monitor_gpu():
+    while True:
+        subprocess.run(["nvidia-smi"])
+        time.sleep(10)
 
-    # Load the dataset (hackercup dataset)
-    ds = load_dataset("hackercupai/hackercup")
+# Process a batch of problems on a specific GPU
+def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
+    # Set the GPU for this process
+    torch.cuda.set_device(gpu_id)
 
-    # Extract problem cases and include sample_input and sample_output in the problem_description
-    problem_cases = extract_problem_cases_with_io(ds)
-
-    # Process each problem in the dataset
-    for problem in problem_cases:
+    # Process each problem
+    for problem in problem_batch:
         try:
             problem_description = problem["problem_description"]
             input_data = problem["sample_input"]
             expected_output = problem["sample_output"]
-            
-            print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']}")
+
+            print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']} on GPU {gpu_id}")
             
             generated_code = run_full_process(
                 problem_description,
                 input_data,
                 expected_output,
-                code_iterations=args.code_iterations,  # Use command-line argument
-                max_num_retry=args.max_num_retry  # Use command-line argument
+                code_iterations=code_iterations,
+                max_num_retry=max_num_retry
             )
-            
+
             if generated_code:
                 score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                     generated_code, input_data, expected_output
                 )
-                
-                if score > 0:
-                    print(f"Problem: {problem['name']} passed with score {score}%!")
-                else:
-                    print(f"Problem: {problem['name']} failed with errors or failed cases.")
-            else:
-                print(f"Could not generate valid code for problem {problem['name']}.")
-        except Exception as e:
-            print(f"Error processing problem {problem['name']}: {e}")
 
+                if score > 0:
+                    print(f"Problem: {problem['name']} passed with score {score}% on GPU {gpu_id}!")
+                else:
+                    print(f"Problem: {problem['name']} failed with errors or failed cases on GPU {gpu_id}.")
+            else:
+                print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
+        except Exception as e:
+            print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
+
+# Main function to run the entire process with multiprocessing
+def main():
+    args = parse_args()
+    monitor_gpu()
+    # Load the dataset
+    ds = load_dataset("hackercupai/hackercup")
+    problem_cases = extract_problem_cases_with_io(ds)
+
+    # Split the problem cases into batches for each GPU
+    num_workers = args.num_workers
+    batch_size = len(problem_cases) // num_workers
+    problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+
+    # Create multiprocessing workers (one for each GPU)
+    processes = []
+    for i in range(num_workers):
+        gpu_id = i  # Each worker uses a different GPU
+        problem_batch = problem_batches[i]
+
+        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
+        processes.append(p)
+        p.start()
+
+    # Wait for all processes to finish
+    for p in processes:
+        p.join()
+
+if __name__ == "__main__":
+    main()
 
