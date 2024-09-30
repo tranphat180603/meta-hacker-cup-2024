@@ -95,6 +95,27 @@ def extract_problem_cases_with_io(dataset):
 # Get all problem cases with input/output appended
 problem_cases = extract_problem_cases_with_io(ds)
 
+
+# Helper function to clean and parse JSON response
+def response_json(response_string):
+    # If the response is already a dictionary, return it as is
+    if isinstance(response_string, dict):
+        return response_string
+
+    # Step 1: Remove 'json', backticks, and any LaTeX-style formatting like \( ... \) or \[ ... \]
+    cleaned_response = response_string.replace('json', '').strip('```').strip()
+
+    # Step 2: Remove LaTeX-like math notation \( ... \) or \[ ... \]
+    cleaned_response = re.sub(r'\\\(|\\\)', '', cleaned_response)  # Removes \( and \)
+    cleaned_response = re.sub(r'\\\[|\\\]', '', cleaned_response)  # Removes \[ and \]
+
+    try:
+        # Step 3: Parse the cleaned string into a Python dictionary
+        parsed_json = json.loads(cleaned_response)
+        return parsed_json
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
     attempts = 0
