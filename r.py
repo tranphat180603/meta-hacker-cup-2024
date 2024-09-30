@@ -69,7 +69,7 @@ def model_response(user_content, system_prompt="You are a helpful assistant whos
 ds = load_dataset("hackercupai/hackercup")
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
-def extract_problem_cases_with_io(dataset):
+def extract_problem_cases_with_io(dataset, split_name):
     problem_cases = []
     for example in dataset:
         sample_input = example["sample_input"]
@@ -96,9 +96,6 @@ def extract_problem_cases_with_io(dataset):
             "sample_output": sample_output
         })
     return problem_cases
-
-# Get all problem cases with input/output appended
-problem_cases = extract_problem_cases_with_io(ds)
 
 
 # Helper function to clean and parse JSON response
