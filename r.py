@@ -212,10 +212,8 @@ def generate_python_code(selected_solution, test_case_analysis):
     return model_response(get_code_generation_template(selected_solution, test_case_analysis))
 
 def request_code_improvement(generated_code, error_message):
-    # print("Step 7: Code improvement: ")
     return model_response(iterate_public_tests(generated_code, error_message))
 
-# Main function to run the process
 # Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
     try:
@@ -258,8 +256,13 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         best_failed_cases = []
 
         while attempts < code_iterations:
+            print(f"Code iterations. Attempt #{attempts}")
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
-
+            if error:
+                print(f"Error: {error}")
+            elif failed_cases:
+                print(f"Failed cases: {failed_cases}")
+                
             # If this score is better than the previous best, update the best result
             if score > best_score:
                 best_score = score
@@ -354,12 +357,12 @@ def main():
                 print(f"No problem found with the name '{args.problem_name}' in the {split_name} split.")
                 continue  # Skip this split if the problem isn't found
 
-        # Handle case where only one problem is present (i.e., if problem_name is specified)
+        # 1 problem
         if len(problem_cases) == 1:
             # Directly assign the problem to a single worker without splitting
             problem_batches = [problem_cases]
             num_workers = 1
-        else:
+        else: #entrie dataset
             # Split the problem cases into batches for each GPU
             num_workers = min(args.num_workers, len(problem_cases))  # Limit workers to the number of problems
             batch_size = max(1, len(problem_cases) // num_workers)  # Ensure at least one case per batch
