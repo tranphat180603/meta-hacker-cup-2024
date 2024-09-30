@@ -65,8 +65,8 @@ def analyze_original_test_cases_template(problem_description):
           "test_case_X": {{
             "input": {{
               "line_1": {{
-                "variable_1": "Extract the first variable or input component (e.g., N).",
-                "variable_2": "Extract the second variable or input component (e.g., K)."
+                "component_name": "Name of the element/variable.",
+                "value": "What's the value of that component?"   
               }},
               "line_2_to_N": {{
                 "components": [
