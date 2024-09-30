@@ -319,9 +319,10 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
             print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
 
 # Main function to run the entire process with multiprocessing
+# Main function to run the process
 def main():
     args = parse_args()
-    # monitor_gpu()
+
     # Load the dataset
     ds = load_dataset("hackercupai/hackercup")
     problem_cases = extract_problem_cases_with_io(ds)
@@ -330,6 +331,13 @@ def main():
     num_workers = args.num_workers
     batch_size = len(problem_cases) // num_workers
     problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+
+    # Set the multiprocessing start method to 'spawn'
+    mp.set_start_method('spawn', force=True)
+
+    # Start GPU monitoring in a separate process
+    gpu_monitor_process = mp.Process(target=monitor_gpu)
+    gpu_monitor_process.start()
 
     # Create multiprocessing workers (one for each GPU)
     processes = []
@@ -344,6 +352,9 @@ def main():
     # Wait for all processes to finish
     for p in processes:
         p.join()
+
+    # Stop the GPU monitor once the main processes are done
+    gpu_monitor_process.terminate()
 
 if __name__ == "__main__":
     main()
