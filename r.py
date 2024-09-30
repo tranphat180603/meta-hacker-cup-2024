@@ -277,6 +277,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             # Request code modification based on errors or failed cases
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
             extracted_code = extract_python_code(new_code['solution_code']['code'])
+            print(f"Improvement: {new_code['solution_code']['improvement']}")
 
             if extracted_code != generated_code:
                 generated_code = extracted_code
@@ -346,17 +347,23 @@ def main():
         # Extract problem cases from the current split
         problem_cases = extract_problem_cases_with_io(dataset)
 
-        # Filter problem cases if the --problem_name argument is provided
+        # Iterate to find the exact problem using it's name when trying to solve 1 particular problem
         if args.problem_name:
             problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
             if not problem_cases:
                 print(f"No problem found with the name '{args.problem_name}' in the {split_name} split.")
                 continue  # Skip this split if the problem isn't found
 
-        # Split the problem cases into batches for each GPU
-        num_workers = args.num_workers
-        batch_size = len(problem_cases) // num_workers
-        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+        # Handle case where only one problem is present (i.e., if problem_name is specified)
+        if len(problem_cases) == 1:
+            # Directly assign the problem to a single worker without splitting
+            problem_batches = [problem_cases]
+            num_workers = 1
+        else:
+            # Split the problem cases into batches for each GPU
+            num_workers = min(args.num_workers, len(problem_cases))  # Limit workers to the number of problems
+            batch_size = max(1, len(problem_cases) // num_workers)  # Ensure at least one case per batch
+            problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
         # Set the multiprocessing start method to 'spawn'
         mp.set_start_method('spawn', force=True)
@@ -375,9 +382,9 @@ def main():
         for p in processes:
             p.join()
 
-
 if __name__ == "__main__":
     main()
+
 
 
 # python r.py --problem_name "cheeseburger_corollary_ch2" --code_iterations 100 --max_num_retry 10 --num_workers 4
