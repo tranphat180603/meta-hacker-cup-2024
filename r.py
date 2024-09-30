@@ -336,8 +336,8 @@ def main():
     mp.set_start_method('spawn', force=True)
 
     # Start GPU monitoring in a separate process
-    gpu_monitor_process = mp.Process(target=monitor_gpu)
-    gpu_monitor_process.start()
+    # gpu_monitor_process = mp.Process(target=monitor_gpu)
+    # gpu_monitor_process.start()
 
     # Create multiprocessing workers (one for each GPU)
     processes = []
@@ -354,7 +354,7 @@ def main():
         p.join()
 
     # Stop the GPU monitor once the main processes are done
-    gpu_monitor_process.terminate()
+    # gpu_monitor_process.terminate()
 
 if __name__ == "__main__":
     main()
