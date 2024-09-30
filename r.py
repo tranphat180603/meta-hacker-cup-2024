@@ -248,7 +248,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             return None
 
         generated_code = extract_python_code(code_solution['solution_code']['code'])
-
+        print(f"GENERATED CODE: {generated_code}")
         attempts = 0
         best_score = 0
         best_code = generated_code
