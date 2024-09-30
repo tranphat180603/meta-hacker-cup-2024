@@ -192,7 +192,7 @@ def understanding_problem(problem_description):
     return model_response(get_problem_understanding_template(problem_description))
 
 def analyze_test_cases(problem_description):
-    # print("Step 2: Analyzing test cases: ")
+    print("Step 2: Analyzing test cases: ")
     return model_response(analyze_original_test_cases_template(problem_description))
 
 def self_generate_test_cases(problem_description,test_case_analysis):
@@ -203,9 +203,9 @@ def generate_solution_ideas(problem_description,test_case_analysis , num_solutio
     # print("Step 4: Generate solutions")
     return model_response(get_solution_ideas_template(problem_description, test_case_analysis,num_solutions))
 
-def evaluate_solutions_f(solution_ideas, test_case_analysis, problem_difficulty):
+def evaluate_solutions_f(solution_ideas, problem_understanding, problem_difficulty):
     # print("Step 5: Evaluating solutions: ")
-    return model_response(evaluate_solutions_template(solution_ideas,test_case_analysis, problem_difficulty))
+    return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, problem_difficulty))
 
 def generate_python_code(selected_solution, test_case_analysis):
     # print("Step 6: First python code: ")
@@ -256,13 +256,13 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         best_failed_cases = []
 
         while attempts < code_iterations:
-            print(f"Code iterations. Attempt #{attempts}")
+            print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
             if error:
                 print(f"Error: {error}")
             elif failed_cases:
                 print(f"Failed cases: {failed_cases}")
-                
+
             # If this score is better than the previous best, update the best result
             if score > best_score:
                 best_score = score
@@ -281,11 +281,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
             extracted_code = extract_python_code(new_code['solution_code']['code'])
             print(f"Improvement: {new_code['solution_code']['improvement']}")
-
-            if extracted_code != generated_code:
-                generated_code = extracted_code
-            else:
-                break  # No changes made, stop further attempts
             
             attempts += 1
 
