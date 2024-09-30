@@ -321,7 +321,7 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
 # Main function to run the entire process with multiprocessing
 def main():
     args = parse_args()
-    monitor_gpu()
+    # monitor_gpu()
     # Load the dataset
     ds = load_dataset("hackercupai/hackercup")
     problem_cases = extract_problem_cases_with_io(ds)
