@@ -71,7 +71,7 @@ ds = load_dataset("hackercupai/hackercup")
 # Extract problem cases and include sample_input and sample_output in the problem_description
 def extract_problem_cases_with_io(dataset):
     problem_cases = []
-    for example in dataset['full']:
+    for example in dataset:
         sample_input = example["sample_input"]
         sample_output = example["sample_output"]
         
@@ -382,3 +382,5 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+# python r.py --problem_name "cheeseburger_corollary_ch2" --code_iterations 100 --max_num_retry 10 --num_workers 4
