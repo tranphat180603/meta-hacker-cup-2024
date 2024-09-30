@@ -28,11 +28,12 @@ def parse_args():
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
+    parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
 # Load the model and tokenizer
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.1, do_sample = True, device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.3, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Apply chat template for all messages
@@ -330,12 +331,11 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                     print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
             else:
                 print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
-                print("Error: {error}")
         except Exception as e:
             print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
 
+
 # Main function to run the entire process with multiprocessing
-# Main function to run the process
 def main():
     args = parse_args()
 
@@ -343,9 +343,16 @@ def main():
     ds = load_dataset("hackercupai/hackercup")
     problem_cases = extract_problem_cases_with_io(ds)
 
+    # Filter problem cases if the --problem_name argument is provided
+    if args.problem_name:
+        problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+        if not problem_cases:
+            print(f"No problem found with the name '{args.problem_name}'.")
+            return
+
     # Split the problem cases into batches for each GPU
     num_workers = args.num_workers
-    batch_size = len(problem_cases) // num_workers
+    batch_size = len(problem_cases) // num_workers if num_workers > 1 else len(problem_cases)
     problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
     # Set the multiprocessing start method to 'spawn'
@@ -353,7 +360,7 @@ def main():
 
     # Create multiprocessing workers (one for each GPU)
     processes = []
-    for i in range(num_workers):
+    for i in range(min(num_workers, len(problem_batches))):
         gpu_id = i  # Each worker uses a different GPU
         problem_batch = problem_batches[i]
 
