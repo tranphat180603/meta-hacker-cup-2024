@@ -332,10 +332,9 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         if best_score > 0:
             print(f"Returning best code with score {best_score}% after {attempts} attempts.")
             return best_code
-        else: 
-            return None
         else:
             print("No valid solution generated.")
+            return None
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
