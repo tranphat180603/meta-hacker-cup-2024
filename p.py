@@ -176,18 +176,18 @@ def get_code_generation_template(selected_solution, test_case_analysis):
     Use your understanding of the input-output structure from: '{test_case_analysis}' to write valid Python code.
 
     **Guidelines**:
-    1. Write clear comments: Add detailed comments throughout the code to explain each part of the logic.
-    2. The input format must strictly follow the structure described in the test cases. For example, if the test input is provided in multiple lines, make sure your code can handle it line by line.
+    1. You must divide the fixed code into small sub-functions, with meaningful names and functionality. Each function should be no longer than 10 lines of code.
     3. Never use `input = sys.stdin.read` or `sys.stdin` to read input.
     4. Always use the `input()` Python built-in function to handle input directly. Ensure the code can handle multiple test cases as described in the problem and parse the input accordingly.
-    5. Ensure that the output format is as described in the problem (e.g., "Case #1: YES/NO").
-    6. Your code should be able to read from an input file and parse inputs in the correct order and structure (e.g., integers, arrays, etc.), based on the given test cases.
+    5. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
     
     Provide the Python code in this structured JSON format:
     {{
       "solution_code": {{
+        "sample_input": "the input of the first test case"
+        "sample_output" "the output of the first test case"
         "language": "Python",
-        "code": "Your Python code as a string here, following the correct input-output format",
+        "code": "Your Python code as a string here, make sure the code can process sample_input and sample_output",
         "solution_name": "the name of the chosen solution",
         "description": "A brief description of the code based on the solution. Explain how the code fully implements the idea of the solution, strictly adhering to the input-output structure of the test cases."
       }}
@@ -200,19 +200,17 @@ def iterate_public_tests(generated_code, error_message):
 
     Guidelines:
     1. Fix the issue on the specific line mentioned in the error message.
-    2. Add clear comments to explain the changes and ensure the logic is sound.
     3. Never use input = sys.stdin.read to read input.
     4. Ensure that the input() function is used to read input directly and in the correct format.
     5. **Only return the updated Python code in JSON format. Do not include any other text.**
-
-    Also, include an explanation of your improvements.
 
     Provide the Python code in the following JSON format:
     {{
       "solution_code": {{
         "language": "Python",
-        "code": "Your improved Python code here",
-        "improvement": "Explain what was fixed, including specific references to line numbers or logic changes that address the issue raised in the error message."
+        "error_line": "The line that may cause the error from the latest code"
+        "code": "Your improved Python code here.",
+        "improvement": "Explain what was fixed, including specific references to line or logic changes that address the issue raised in the error message."
       }}
     }}
     """
