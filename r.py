@@ -335,42 +335,49 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
             print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
 
 
-# Main function to run the entire process with multiprocessing
+# Main function to run the process
 def main():
     args = parse_args()
 
     # Load the dataset
     ds = load_dataset("hackercupai/hackercup")
-    problem_cases = extract_problem_cases_with_io(ds)
 
-    # Filter problem cases if the --problem_name argument is provided
-    if args.problem_name:
-        problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
-        if not problem_cases:
-            print(f"No problem found with the name '{args.problem_name}'.")
-            return
+    # Iterate over both 'sample' and 'full' datasets
+    for split_name, dataset in ds.items():
+        print(f"Processing split: {split_name}")
 
-    # Split the problem cases into batches for each GPU
-    num_workers = args.num_workers
-    batch_size = len(problem_cases) // num_workers if num_workers > 1 else len(problem_cases)
-    problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+        # Extract problem cases from the current split
+        problem_cases = extract_problem_cases_with_io(dataset)
 
-    # Set the multiprocessing start method to 'spawn'
-    mp.set_start_method('spawn', force=True)
+        # Filter problem cases if the --problem_name argument is provided
+        if args.problem_name:
+            problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+            if not problem_cases:
+                print(f"No problem found with the name '{args.problem_name}' in the {split_name} split.")
+                continue  # Skip this split if the problem isn't found
 
-    # Create multiprocessing workers (one for each GPU)
-    processes = []
-    for i in range(min(num_workers, len(problem_batches))):
-        gpu_id = i  # Each worker uses a different GPU
-        problem_batch = problem_batches[i]
+        # Split the problem cases into batches for each GPU
+        num_workers = args.num_workers
+        batch_size = len(problem_cases) // num_workers
+        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
-        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
-        processes.append(p)
-        p.start()
+        # Set the multiprocessing start method to 'spawn'
+        mp.set_start_method('spawn', force=True)
 
-    # Wait for all processes to finish
-    for p in processes:
-        p.join()
+        # Create multiprocessing workers (one for each GPU)
+        processes = []
+        for i in range(num_workers):
+            gpu_id = i  # Each worker uses a different GPU
+            problem_batch = problem_batches[i]
+
+            p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
+            processes.append(p)
+            p.start()
+
+        # Wait for all processes to finish
+        for p in processes:
+            p.join()
+
 
 if __name__ == "__main__":
     main()
