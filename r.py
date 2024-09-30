@@ -32,7 +32,7 @@ def parse_args():
 
 # Load the model and tokenizer
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.1, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Apply chat template for all messages
@@ -56,7 +56,7 @@ def generate_response(messages, max_new_tokens=2048):
     return response
 
 # Helper to parse response at each step
-def model_response(user_content, system_prompt="You are Qwen, created by Alibaba Cloud. Your job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
+def model_response(user_content, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
     messages = [
     {"role": "system", "content": system_prompt},
     {"role": "user", "content": user_content}
@@ -198,7 +198,7 @@ def analyze_test_cases(problem_description):
     print("Step 2: Analyzing test cases: ")
     return model_response(analyze_original_test_cases_template(problem_description))
 
-def self_generate_test_cases(test_case_analysis):
+def self_generate_test_cases(problem_description,test_case_analysis):
     print("Step 3: Generate more sample test cases")
     return model_response(generate_ai_test_cases_prompt(problem_description,test_case_analysis))
 
@@ -232,7 +232,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             return None
 
         # Step 3: Generate AI test cases
-        ai_test = retry(self_generate_test_cases, max_num_retry, response_json(analysis)['original_test_case_analysis'])
+        ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
         if not ai_test:
             return None
 
@@ -257,7 +257,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         while attempts < code_iterations:
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
             
-            if score > 0:  
+            if score > 0: 
                 return generated_code
 
             improvement_feedback = error if error else failed_cases
@@ -276,11 +276,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         return None
     except Exception:
         return None
-
-def monitor_gpu():
-    while True:
-        subprocess.run(["nvidia-smi"])
-        time.sleep(10)
 
 # Process a batch of problems on a specific GPU
 def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
@@ -335,10 +330,6 @@ def main():
     # Set the multiprocessing start method to 'spawn'
     mp.set_start_method('spawn', force=True)
 
-    # Start GPU monitoring in a separate process
-    # gpu_monitor_process = mp.Process(target=monitor_gpu)
-    # gpu_monitor_process.start()
-
     # Create multiprocessing workers (one for each GPU)
     processes = []
     for i in range(num_workers):
@@ -352,9 +343,6 @@ def main():
     # Wait for all processes to finish
     for p in processes:
         p.join()
-
-    # Stop the GPU monitor once the main processes are done
-    # gpu_monitor_process.terminate()
 
 if __name__ == "__main__":
     main()
