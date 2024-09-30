@@ -19,3 +19,6 @@ def solve_problem():
         results.append(f'Case #{t}: {result}')
     for result in results:
         print(result)
+    
+if __name__ == "__main__":
+    solve_problem()
