@@ -285,6 +285,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         best_generated_output = None
         best_failed_cases = []
 
+        # Start the code iteration loop
         while attempts < code_iterations:
             print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
 
@@ -311,41 +312,35 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
                 print(f"Perfect score achieved: {best_score}%")
                 return best_code
 
-            # Request code improvement if the score isn't perfect
+            # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
+            if not improvement_feedback:
+                print("No improvement feedback. Continuing to next iteration.")
+                attempts += 1
+                continue  # Skip this iteration if no feedback is available
+
             print(f"Improvement feedback: {improvement_feedback}")
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
 
-            # Ensure the new code is valid before continuing
-            if not new_code or "solution_code" not in new_code or "code" not in new_code["solution_code"]:
-                print("Failed to generate improved code. Stopping the process.")
-                break
-
             extracted_code = extract_python_code(new_code['solution_code']['code'])
-
-            # Check if the new code is different from the previous version
-            if extracted_code != generated_code:
-                generated_code = extracted_code
-                print(f"Improved code: {generated_code}")
-            else:
-                print("No changes made in the code. Stopping.")
-                break  # No changes made, stop further attempts
 
             attempts += 1
 
         # After max iterations, return the best result so far if it exists
         if best_score > 0:
             print(f"Returning best code with score {best_score}% after {attempts} attempts.")
-            return best_code, best_score, best_generated_output, best_failed_cases
+            return best_code
+        else: 
+            return None
         else:
             print("No valid solution generated.")
-            return None
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return None
+
 
 
 # Process a batch of problems on a specific GPU
