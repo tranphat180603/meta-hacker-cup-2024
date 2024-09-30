@@ -118,7 +118,6 @@ def response_json(response_string):
         parsed_json = json.loads(cleaned_response)
         return parsed_json
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
         return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -191,33 +190,34 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 #BESIDES THE CONTENT, IT IS POSSIBLE PARSE SYSTEM PROMPT HERE
 
 def understanding_problem(problem_description): 
-    print("Step 1: Understanding problem:")
+    # print("Step 1: Understanding problem:")
     return model_response(get_problem_understanding_template(problem_description))
 
 def analyze_test_cases(problem_description):
-    print("Step 2: Analyzing test cases: ")
+    # print("Step 2: Analyzing test cases: ")
     return model_response(analyze_original_test_cases_template(problem_description))
 
 def self_generate_test_cases(problem_description,test_case_analysis):
-    print("Step 3: Generate more sample test cases")
+    # print("Step 3: Generate more sample test cases")
     return model_response(generate_ai_test_cases_prompt(problem_description,test_case_analysis))
 
 def generate_solution_ideas(problem_description,test_case_analysis , num_solutions):
-    print("Step 4: Generate solutions")
+    # print("Step 4: Generate solutions")
     return model_response(get_solution_ideas_template(problem_description, test_case_analysis,num_solutions))
 
 def evaluate_solutions_f(solution_ideas, test_case_analysis, problem_difficulty):
-    print("Step 5: Evaluating solutions: ")
+    # print("Step 5: Evaluating solutions: ")
     return model_response(evaluate_solutions_template(solution_ideas,test_case_analysis, problem_difficulty))
 
 def generate_python_code(selected_solution, test_case_analysis):
-    print("Step 6: First python code: ")
+    # print("Step 6: First python code: ")
     return model_response(get_code_generation_template(selected_solution, test_case_analysis))
 
 def request_code_improvement(generated_code, error_message):
-    print("Step 7: Code improvement: ")
+    # print("Step 7: Code improvement: ")
     return model_response(iterate_public_tests(generated_code, error_message))
 
+# Main function to run the process
 # Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
     try:
@@ -254,15 +254,29 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         generated_code = extract_python_code(code_solution['solution_code']['code'])
 
         attempts = 0
+        best_score = 0
+        best_code = generated_code
+        best_generated_output = None
+        best_failed_cases = []
+
         while attempts < code_iterations:
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
-            
-            if score > 0: 
-                return generated_code
 
+            # If this score is better than the previous best, update the best result
+            if score > best_score:
+                best_score = score
+                best_code = generated_code
+                best_generated_output = generated_output
+                best_failed_cases = failed_cases
+
+            # Stop if we achieve a perfect score
+            if best_score == 100:
+                return best_code
+
+            # Request code improvement if not perfect score
             improvement_feedback = error if error else failed_cases
 
-            # Request code modification based on errors
+            # Request code modification based on errors or failed cases
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
             extracted_code = extract_python_code(new_code['solution_code']['code'])
 
@@ -273,7 +287,13 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             
             attempts += 1
 
-        return None
+        # After reaching max iterations, return the best result so far if it exists
+        if best_score > 0:
+            print(f"Returning best code with score {best_score}% after {attempts} attempts.")
+            return best_code, best_score, best_generated_output, best_failed_cases
+        else:
+            return None
+
     except Exception:
         return None
 
@@ -307,9 +327,10 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                 if score > 0:
                     print(f"Problem: {problem['name']} passed with score {score}% on GPU {gpu_id}!")
                 else:
-                    print(f"Problem: {problem['name']} failed with errors or failed cases on GPU {gpu_id}.")
+                    print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
             else:
                 print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
+                print("Error: {error}")
         except Exception as e:
             print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
 
