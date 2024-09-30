@@ -3,13 +3,12 @@ import contextlib
 import io
 from unittest.mock import patch
 import time
-import json
 import re
 import traceback
-
 from datasets import load_dataset
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import argparse
 
 from p import (
     get_problem_understanding_template,
@@ -20,6 +19,12 @@ from p import (
     get_code_generation_template,
     iterate_public_tests
 )
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
+    parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
+    parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
+    return parser.parse_args()
 
 # Load the model and tokenizer
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
@@ -32,7 +37,6 @@ def apply_chat_template(messages):
 
 # Function to interact with the model and return the latest response using chat template
 def generate_response(messages, max_new_tokens=2048):
-    # Apply chat template to the messages before passing to the model
     full_prompt = apply_chat_template(messages)
     
     model_inputs  = tokenizer(full_prompt, return_tensors="pt").to(model.device)
@@ -54,18 +58,15 @@ def model_response(user_content, system_prompt="You are Qwen, created by Alibaba
     {"role": "user", "content": user_content}
     ]
     response = generate_response(messages)
-    formatted_response = {"role": "assistant", "content": response}
-    print(f"{formatted_response['content']}")
-    return formatted_response["content"]
+    return response
 
-#load dataset
+# Load dataset
 ds = load_dataset("hackercupai/hackercup")
-
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
 def extract_problem_cases_with_io(dataset):
     problem_cases = []
-    for example in dataset['full']:  # Assuming we're using the 'train' split
+    for example in dataset['full']:
         sample_input = example["sample_input"]
         sample_output = example["sample_output"]
         
@@ -94,59 +95,26 @@ def extract_problem_cases_with_io(dataset):
 # Get all problem cases with input/output appended
 problem_cases = extract_problem_cases_with_io(ds)
 
-
-# Helper function to clean and parse JSON response
-def response_json(response_string):
-    # If the response is already a dictionary, return it as is
-    if isinstance(response_string, dict):
-        return response_string
-
-    # Step 1: Remove 'json', backticks, and any LaTeX-style formatting like \( ... \) or \[ ... \]
-    cleaned_response = response_string.replace('json', '').strip('```').strip()
-
-    # Step 2: Remove LaTeX-like math notation \( ... \) or \[ ... \]
-    cleaned_response = re.sub(r'\\\(|\\\)', '', cleaned_response)  # Removes \( and \)
-    cleaned_response = re.sub(r'\\\[|\\\]', '', cleaned_response)  # Removes \[ and \]
-
-    try:
-        # Step 3: Parse the cleaned string into a Python dictionary
-        parsed_json = json.loads(cleaned_response)
-        return parsed_json
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
-        return None  # Return None if parsing fails
-
-
-# Retry function to retry any function that uses response_json
+# Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
     attempts = 0
     result = None
 
     while attempts < max_attempts:
-        # Always get the model's response
-        raw_response = func(*args, **kwargs)
-
         try:
-            # Attempt to parse the response using response_json
+            raw_response = func(*args, **kwargs)
             parsed_response = response_json(raw_response)
             
-            # Check if the parsed response is not None and is a valid dictionary
             if parsed_response is not None and isinstance(parsed_response, dict):
-                return parsed_response  # Return parsed response if successful
-            else:
-                print(f"Attempt {attempts + 1} failed: Unable to parse valid JSON.")
+                return parsed_response
         except Exception as e:
-            print(f"Error during attempt {attempts + 1}: {e}")
-            
+            pass  # Silently handle errors and retry
 
         attempts += 1
-        print(f"Retrying {func.__name__}... (Attempt {attempts + 1} of {max_attempts})")
     
-    raise ValueError(f"Failed to process valid JSON after {max_attempts} attempts")
+    return None  # Return None to signal failure
 
-
-###HELPER FUNCTIONS TO ITERATE THE CODE SOLUTIONS
-
+### Helper functions to iterate the code solutions
 # Extract Python code from the structured output
 def extract_python_code(response):
     return response
@@ -160,60 +128,38 @@ def run_extracted_code(extracted_code, test_input):
         try:
             exec(extracted_code, {"__name__": "__main__"})
         except Exception as e:
-            # Capture the full traceback to provide more detail about where the error occurred
             error = traceback.format_exc()
-    print(f" Model generated_output: {output.getvalue()}")
     return output.getvalue(), error
 
-# Compare the output generated by the code with the expected output, case by case
+# Compare the output generated by the code with the expected output
 def compare_with_expected_output(generated_output, expected_output):
     generated_output_lines = generated_output.strip().splitlines()
     expected_output_lines = expected_output.strip().splitlines()
 
-    # Calculate total test cases and matching cases
     total_cases = len(expected_output_lines)
     matching_cases = 0
     failed_cases = []
     
-    # Log the output comparison between generated and expected
-    print("\n=== Output Comparison ===")
-    
     for i, (generated_line, expected_line) in enumerate(zip(generated_output_lines, expected_output_lines), start=1):
-        print(f"Test Case #{i}:\nGenerated Output: {generated_line}\nExpected Output: {expected_line}")
         if generated_line.strip() == expected_line.strip():
             matching_cases += 1
         else:
             failed_cases.append(f"Test Case #{i}: Expected '{expected_line}' but got '{generated_line}'")
-    
-    print("\n=== End of Comparison ===\n")
 
-    # Calculate score as a percentage
     score = (matching_cases / total_cases) * 100 if total_cases > 0 else 0
-
     return score, failed_cases
 
-
-
-
+# Evaluate generated code on test cases
 def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_output):
-    
-    # Run the extracted code with the provided test input
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
-    # Check if generated_output is empty
     if not generated_output.strip():
         return 0, error, generated_output, []
     
-    # Check if there was an error during execution
     if error:
         return 0, error, generated_output, []
     
-    # Compare the generated output with the expected output
     score, failed_cases = compare_with_expected_output(generated_output, test_output)
-    
-    print(f"Evaluation completed. Score: {score}%")
-    
-    # Return the score, error if any, generated output, and failed cases
     return score, error, generated_output, failed_cases
 
 
@@ -247,90 +193,104 @@ def request_code_improvement(generated_code, error_message):
     print("Step 7: Code improvement: ")
     return model_response(iterate_public_tests(generated_code, error_message))
 
-# Main function to run the process with chat templates, parse JSON applied at each step
+# Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
-    # Step 1: Understand the problem
-    understand = retry(understanding_problem, max_num_retry, problem_description)
-    
-    # Step 2: Analyze test cases
-    analysis = retry(analyze_test_cases, max_num_retry, problem_description)
+    try:
+        # Step 1: Understand the problem
+        understand = retry(understanding_problem, max_num_retry, problem_description)
+        if not understand:
+            return None
 
-    # Step 3: Generate more test cases based on observation (AI-generated test cases)
-    ai_test = retry(self_generate_test_cases, max_num_retry, response_json(analysis)['original_test_case_analysis'])
+        # Step 2: Analyze test cases
+        analysis = retry(analyze_test_cases, max_num_retry, problem_description)
+        if not analysis:
+            return None
 
-    # Step 4: Generate solution ideas with increasing complexity
-    solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
+        # Step 3: Generate AI test cases
+        ai_test = retry(self_generate_test_cases, max_num_retry, response_json(analysis)['original_test_case_analysis'])
+        if not ai_test:
+            return None
 
-    # Step 5: Evaluate solutions based on problem difficulty
-    evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(understand)['understanding']['difficulty_assessment'])
+        # Step 4: Generate solution ideas
+        solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
+        if not solutions:
+            return None
 
-    # Step 6: Generate Python code based on the best solution
-    code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
-    generated_code = extract_python_code(code_solution['solution_code']['code'])
-    
-    attempts = 0
-    code_passes = False
-    last_ver_code = generated_code
+        # Step 5: Evaluate solutions
+        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(understand)['understanding']['difficulty_assessment'])
+        if not evaluate_solutions:
+            return None
 
-    while attempts < code_iterations and not code_passes:
-        # Step 7: Evaluate the generated code with original test cases
-        score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
+        # Step 6: Generate Python code
+        code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
+        if not code_solution:
+            return None
 
-        print(f"Attempt {attempts + 1}: Evaluation completed. Score: {score}%")
-        
-        # Check if code passed
-        if score > 0:  
-            return generated_code
+        generated_code = extract_python_code(code_solution['solution_code']['code'])
 
-        # Log errors or failed cases and request code improvement
-        if error:
-            print(f"Execution Error: {error}")
-            improvement_feedback = error  # If execution error, pass it for improvement
-        else:
-            print("Test cases failed:")
-            improvement_feedback = failed_cases  # Pass the failed test cases as feedback for improvement
-            print(f"Failed cases:\n{failed_cases}")
+        attempts = 0
+        while attempts < code_iterations:
+            score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(generated_code, test_input=test_input, test_output=test_output)
+            
+            if score > 0:  
+                return generated_code
 
-        # Step 8: Request code modification based on error or failed cases
-        new_code = retry(request_code_improvement, max_num_retry, last_ver_code, improvement_feedback)
+            improvement_feedback = error if error else failed_cases
 
-        # Extract the new code and check if it's different
-        extracted_code = extract_python_code(new_code['solution_code']['code'])
+            # Request code modification based on errors
+            new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
+            extracted_code = extract_python_code(new_code['solution_code']['code'])
 
-        if extracted_code != last_ver_code:
-            generated_code = extracted_code
-            last_ver_code = extracted_code
-            print("Made some changes to the code.")
-        else:
-            print("No changes made in this iteration.")
-        
-        attempts += 1
+            if extracted_code != generated_code:
+                generated_code = extracted_code
+            else:
+                break  # No changes made, stop further attempts
+            
+            attempts += 1
 
-    # If the code doesn't pass all test cases in the allowed attempts
-    print(f"Failed to generate correct code after {code_iterations} attempts.")
-    return None
+        return None
+    except Exception:
+        return None
 
-for problem in problem_cases:
-    problem_description = problem["problem_description"]
-    input_data = problem["sample_input"]
-    expected_output = problem["sample_output"]
-    
-    print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']}")
-    
-    generated_code = run_full_process(problem_description,input_data,expected_output )
-    
-    if generated_code:
-        # If code is generated successfully, execute it
-        code_passes, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-            generated_code, input_data, expected_output
-        )
-        
-        if code_passes:
-            print(f"Code passed for problem {problem['name']}!")
-        else:
-            print(f"Code failed for problem {problem['name']}. Errors: {error}")
-            print(f"Failed cases: {failed_cases}")
-    else:
-        print(f"Could not generate valid code for problem {problem['name']}.")
+if __name__ == "__main__":
+    # Parse the command-line arguments
+    args = parse_args()
+
+    # Load the dataset (hackercup dataset)
+    ds = load_dataset("hackercupai/hackercup")
+
+    # Extract problem cases and include sample_input and sample_output in the problem_description
+    problem_cases = extract_problem_cases_with_io(ds)
+
+    # Process each problem in the dataset
+    for problem in problem_cases:
+        try:
+            problem_description = problem["problem_description"]
+            input_data = problem["sample_input"]
+            expected_output = problem["sample_output"]
+            
+            print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']}")
+            
+            generated_code = run_full_process(
+                problem_description,
+                input_data,
+                expected_output,
+                code_iterations=args.code_iterations,  # Use command-line argument
+                max_num_retry=args.max_num_retry  # Use command-line argument
+            )
+            
+            if generated_code:
+                score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                    generated_code, input_data, expected_output
+                )
+                
+                if score > 0:
+                    print(f"Problem: {problem['name']} passed with score {score}%!")
+                else:
+                    print(f"Problem: {problem['name']} failed with errors or failed cases.")
+            else:
+                print(f"Could not generate valid code for problem {problem['name']}.")
+        except Exception as e:
+            print(f"Error processing problem {problem['name']}: {e}")
 
 
