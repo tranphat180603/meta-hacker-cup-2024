@@ -264,7 +264,7 @@ def analyze_test_cases(problem_description):
         return None
 
 def refine_understanding(problem_understanding, test_case_analysis):
-        try:
+    try:
         print("Step 3: Refine problem understandings: ")
         return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
         You are tasked with refining the problem understanding based on new insights from test case analysis. 
