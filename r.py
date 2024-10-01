@@ -219,6 +219,13 @@ def compare_with_expected_output(generated_output, expected_output):
 
 # Evaluate generated code on test cases
 def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_output):
+    if test_input is None:
+        print("No input extracted")
+        return None
+    elif test_output is None:
+        print("No output extracted")
+        return None
+
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
     if not generated_output.strip():
