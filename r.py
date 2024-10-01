@@ -65,7 +65,7 @@ def model_response(user_content, system_prompt="You are a helpful assistant whos
     ]
     response = generate_response(messages)
     formatted_response = {"role": "assistant", "content": response}
-    print(f"{formatted_response['content']}")
+    # print(f"{formatted_response['content']}")
     return formatted_response["content"]
 
 # Load dataset
@@ -362,7 +362,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         # After max iterations, return the best result so far if it exists
         if best_score > 0:
             print(f"Returning best code with score {best_score}% after {attempts} attempts.")
-            return best_code
+            return best_code, best_score
         else:
             print("No valid solution generated.")
             return None
@@ -373,42 +373,48 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
 
 
-# Process a batch of problems on a specific GPU
 def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
     # Set the GPU for this process
     torch.cuda.set_device(gpu_id)
 
-    # Process each problem
-    for problem in problem_batch:
-        try:
-            problem_description = problem["problem_description"]
-            input_data = problem["sample_input"]
-            expected_output = problem["sample_output"]
+    # Open a file to log results
+    with open(f'gpu_{gpu_id}_results.txt', 'w') as file:
+        # Process each problem
+        for problem in problem_batch:
+            try:
+                problem_description = problem["problem_description"]
+                input_data = problem["sample_input"]
+                expected_output = problem["sample_output"]
 
-            print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']} on GPU {gpu_id}")
-            
-            generated_code = run_full_process(
-                problem_description,
-                input_data,
-                expected_output,
-                code_iterations=code_iterations,
-                max_num_retry=max_num_retry
-            )
-
-            if generated_code:
-                score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                    generated_code, input_data, expected_output
+                print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']} on GPU {gpu_id}")
+                
+                generated_code, best_score = run_full_process(
+                    problem_description,
+                    input_data,
+                    expected_output,
+                    code_iterations=code_iterations,
+                    max_num_retry=max_num_retry
                 )
 
-                if score > 0:
-                    print(f"Problem: {problem['name']} passed with score {score}% on GPU {gpu_id}!")
+                if generated_code:
+                    score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                        generated_code, input_data, expected_output
+                    )
+
+                    if score > 0:
+                        print(f"Problem: {problem['name']} passed with score {score}% on GPU {gpu_id}!")
+                    else:
+                        print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
                 else:
-                    print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
-            else:
-                print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
-                return None
-        except Exception as e:
-            print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
+                    print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
+                
+                # Write the best score to the file
+                file.write(f"Problem: {problem['name']}, Score: {best_score}%\n")
+
+            except Exception as e:
+                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
+                file.write(f"Problem: {problem['name']}, Error: {str(e)}\n")
+
 
 
 # Main function to run the process
