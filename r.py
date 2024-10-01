@@ -64,6 +64,7 @@ def model_response(user_content, system_prompt="You are a helpful assistant whos
     {"role": "user", "content": user_content}
     ]
     response = generate_response(messages)
+    print(response['content'])
     return response
 
 # Load dataset
@@ -227,27 +228,27 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 #BESIDES THE CONTENT, IT IS POSSIBLE PARSE SYSTEM PROMPT HERE
 
 def understanding_problem(problem_description): 
-    # print("Step 1: Understanding problem:")
+    print("Step 1: Understanding problem:")
     return model_response(get_problem_understanding_template(problem_description))
 
 def analyze_test_cases(problem_description):
-    # print("Step 2: Analyzing test cases: ")
+    print("Step 2: Analyzing test cases: ")
     return model_response(analyze_original_test_cases_template(problem_description))
 
 def self_generate_test_cases(problem_description,test_case_analysis):
-    # print("Step 3: Generate more sample test cases")
+    print("Step 3: Generate more sample test cases")
     return model_response(generate_ai_test_cases_prompt(problem_description,test_case_analysis))
 
 def generate_solution_ideas(problem_description,test_case_analysis , num_solutions):
-    # print("Step 4: Generate solutions")
+    print("Step 4: Generate solutions")
     return model_response(get_solution_ideas_template(problem_description, test_case_analysis,num_solutions))
 
 def evaluate_solutions_f(solution_ideas, problem_understanding, problem_difficulty):
-    # print("Step 5: Evaluating solutions: ")
+    print("Step 5: Evaluating solutions: ")
     return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, problem_difficulty))
 
 def generate_python_code(selected_solution, test_case_analysis):
-    # print("Step 6: First python code: ")
+    print("Step 6: First python code: ")
     return model_response(get_code_generation_template(selected_solution, test_case_analysis))
 
 def request_code_improvement(generated_code, error_message):
@@ -320,7 +321,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
 
-            print(f"Improvement feedback: {improvement_feedback}")
+            # print(f"Improvement feedback: {improvement_feedback}")
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
