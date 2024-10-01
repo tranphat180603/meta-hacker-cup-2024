@@ -34,8 +34,8 @@ def parse_args():
     return parser.parse_args()
 
 # Load the model and tokenizer
-model_name = "Qwen/Qwen2.5-32B-Instruct-AWQ"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, temperature=0.3, do_sample = True, device_map="auto")
+model_name = "Qwen/Qwen2.5-14B-Instruct"
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.3, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Apply chat template for all messages
