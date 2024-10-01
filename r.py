@@ -331,6 +331,9 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
+            if not new_code:
+                print("Error in 'request_code_improvement'. Returned None.")
+                break
             generated_code = new_code
             attempts += 1
 
