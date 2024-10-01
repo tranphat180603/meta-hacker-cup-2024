@@ -147,7 +147,7 @@ def extract_python_code(response):
 def check_code_structure(extracted_code):
     # Check if the phrase "__name__ == '__main__'" or '__name__ == "__main__"' is present in the code
     
-    if "__name__ == '__main__'" not in extracted_code and '__name__ == "__main__"' not in extracted_code:
+    if "__name__ == '__main__'" not in extracted_code:
         return False, "Missing `if __name__ == '__main__':` block."
     
     return True, None
