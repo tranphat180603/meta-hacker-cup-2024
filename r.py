@@ -282,8 +282,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         attempts = 0
         best_score = 0
         best_code = generated_code
-        best_generated_output = None
-        best_failed_cases = []
+
 
         # Start the code iteration loop
         while attempts < code_iterations:
@@ -304,8 +303,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             if score > best_score:
                 best_score = score
                 best_code = generated_code
-                best_generated_output = generated_output
-                best_failed_cases = failed_cases
 
             # If we achieve a perfect score, stop and return the best code
             if best_score == 100:
@@ -314,18 +311,12 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
-            if not improvement_feedback:
-                print("No improvement feedback. Continuing to next iteration.")
-                attempts += 1
-                continue  # Skip this iteration if no feedback is available
 
             print(f"Improvement feedback: {improvement_feedback}")
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
-
-            extracted_code = extract_python_code(new_code['solution_code']['code'])
-
+            generated_code = new_code
             attempts += 1
 
         # After max iterations, return the best result so far if it exists
@@ -399,7 +390,7 @@ def main():
             problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
             if not problem_cases:
                 print(f"No problem found with the name '{args.problem_name}' in the {split_name} split.")
-                continue  # Skip this split if the problem isn't found
+                continue    
 
         # 1 problem
         if len(problem_cases) == 1:
