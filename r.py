@@ -266,31 +266,41 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         # Step 1: Understand the problem
         understand = retry(understanding_problem, max_num_retry, problem_description)
         if not understand:
+            print("Error in 'understanding_problem'. Returned None.")
             return None
+        print("Step 1 completed successfully.")
 
         # Step 2: Analyze test cases
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
         if not analysis:
+            print("Error in 'analyze_test_cases'. Returned None.")
             return None
+        print("Step 2 completed successfully.")
 
         # Step 3: Generate AI test cases
         ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
         if not ai_test:
+            print("Error in 'self_generate_test_cases'. Returned None.")
             return None
+        print("Step 3 completed successfully.")
 
         # Step 4: Generate solution ideas
         solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
         if not solutions:
+            print("Error in 'generate_solution_ideas'. Returned None.")
             return None
+        print("Step 4 completed successfully.")
 
         # Step 5: Evaluate solutions
         evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
         if not evaluate_solutions:
+            print("Error retrieving 'evaluate_solutions' from the evaluation response.")
             return None
 
         # Step 6: Generate Python code
         code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
         if not code_solution:
+            print("Error in 'generate_python_code'. Returned None.")
             return None
 
         generated_code = extract_python_code(code_solution['solution_code']['code'])
