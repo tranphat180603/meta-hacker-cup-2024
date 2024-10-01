@@ -243,7 +243,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        print("Step 1: Understanding problem:")
+        # print("Step 1: Understanding problem:")
         return model_response(get_problem_understanding_template(problem_description))
     except Exception as e:
         print(f"Error in understanding_problem: {str(e)}")
@@ -251,7 +251,7 @@ def understanding_problem(problem_description):
 
 def analyze_test_cases(problem_description):
     try:
-        print("Step 2: Analyzing test cases: ")
+        # print("Step 2: Analyzing test cases: ")
         return model_response(analyze_original_test_cases_template(problem_description))
     except Exception as e:
         print(f"Error in analyze_test_cases: {str(e)}")
@@ -259,7 +259,7 @@ def analyze_test_cases(problem_description):
 
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        print("Step 3: Generate more sample test cases")
+        # print("Step 3: Generate more sample test cases")
         return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis))
     except Exception as e:
         print(f"Error in self_generate_test_cases: {str(e)}")
@@ -267,7 +267,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        print("Step 4: Generate solutions")
+        # print("Step 4: Generate solutions")
         return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions))
     except Exception as e:
         print(f"Error in generate_solution_ideas: {str(e)}")
@@ -275,7 +275,7 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 
 def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
     try:
-        print("Step 5: Evaluating solutions: ")
+        # print("Step 5: Evaluating solutions: ")
         return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty))
     except Exception as e:
         print(f"Error in evaluate_solutions_f: {str(e)}")
@@ -283,7 +283,7 @@ def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analys
 
 def generate_python_code(selected_solution, test_case_analysis):
     try:
-        print("Step 6: First python code: ")
+        # print("Step 6: First python code: ")
         return model_response(get_code_generation_template(selected_solution, test_case_analysis))
     except Exception as e:
         print(f"Error in generate_python_code: {str(e)}")
