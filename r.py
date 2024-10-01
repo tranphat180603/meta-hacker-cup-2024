@@ -29,7 +29,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
-    # parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") tam thoi bo multiprocessing
+    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") tam thoi bo multiprocessing
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
