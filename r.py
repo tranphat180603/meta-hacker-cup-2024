@@ -299,10 +299,10 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
         print(f"Error in generate_solution_ideas: {str(e)}")
         return None
 
-def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
+def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     try:
         print("Step 6: Evaluating solutions: ")
-        return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
+        return model_response(evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
         You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
         Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
         Ensure that the output is provided strictly in the JSON format specified, without adding any extra text or explanations.

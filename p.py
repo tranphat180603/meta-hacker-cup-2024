@@ -6,7 +6,7 @@ def get_problem_understanding_template(problem_description):
     Pay attention to small details, nuances, notes, and examples in the problem description.
 
     This is the problem: 
-    
+
     '{problem_description}'
     
     Provide your understanding in the following JSON structure:
@@ -71,17 +71,10 @@ def analyze_original_test_cases_template(problem_description):
             "input": {{
               "line_1": {{
                 "component_name": "Name of the element/variable.",
-                "value": "What's the value of that component?"   
+                "value": "What's the value of that component?" 
+                if there are more than 1 component just write their names and values in the same line  
               }},
-              "line_2_to_N": {{
-                "components": [
-                  {{
-                    "component_name": "Describe the first element of the list.",
-                    "value": "What's the value of that component?"
-                  }},
-                  ...
-                ]
-              }}
+              create more if there are more than 1 line in a test case
             }},
             "output": {{
               "target_output": "The expected output as per the problem statement (e.g., `Case #X: YES/NO`, integer result, etc.).",
@@ -205,7 +198,7 @@ def evaluate_solutions_template(solution_ideas, refine_problem_understanding, te
     Your goal is to choose the best solution based on the description below.
 
     Problem understanding:
-    Goal: '{problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}'
+    Goal: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}'
     
     Guidelines:
     - The main consideration should be that the solution can fully solve the problem in a simple and robust manner, especially given the difficulty level ('{problem_difficulty}').
