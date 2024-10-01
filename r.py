@@ -66,9 +66,8 @@ def model_response(user_content, system_prompt="You are a helpful assistant whos
     ]
     response = generate_response(messages)
     formatted_response = {"role": "assistant", "content": response}
-    print(f"{formatted_response['content']}") #uncomment to display pipeline
+    # print(f"{formatted_response['content']}") #uncomment to display pipeline
     return formatted_response["content"]
-
 # Load dataset
 ds = load_dataset("hackercupai/hackercup")
 
@@ -242,7 +241,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        print("Step 1: Understanding problem:")
+        # print("Step 1: Understanding problem:")
         return model_response(get_problem_understanding_template(problem_description), system_prompt = """
         You are a specialized assistant whose task is to provide a clear and structured JSON representation of a programming problem's details. 
         You will be given a problem description and must produce a JSON output summarizing the problem's goal, constraints, test cases, important ideas, and difficulty assessment. 
@@ -254,7 +253,7 @@ def understanding_problem(problem_description):
 
 def analyze_test_cases(problem_description):
     try:
-        print("Step 2: Analyzing test cases: ")
+        # print("Step 2: Analyzing test cases: ")
         return model_response(analyze_original_test_cases_template(problem_description), system_prompt = """
         You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
         Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
@@ -266,7 +265,7 @@ def analyze_test_cases(problem_description):
 
 def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
-        print("Step 3: Refine problem understandings: ")
+        # print("Step 3: Refine problem understandings: ")
         return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
         You are tasked with refining the problem understanding based on new insights from test case analysis. 
         Focus on updating constraints, identifying edge cases, and correcting any discrepancies between the original understanding and test cases. 
@@ -278,7 +277,7 @@ def get_refine_understanding(problem_understanding, test_case_analysis):
 
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        print("Step 4: Generate more sample test cases")
+        # print("Step 4: Generate more sample test cases")
         return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
         You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
         Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
@@ -289,7 +288,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        print("Step 5: Generate solutions")
+        # print("Step 5: Generate solutions")
         return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
         You are tasked with generating solution ideas based on the provided problem description and test case analysis. 
         Your job is to provide multiple solution approaches that can pass all test cases, including original and AI-generated ones. 
@@ -301,7 +300,7 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 
 def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     try:
-        print("Step 6: Evaluating solutions: ")
+        # print("Step 6: Evaluating solutions: ")
         return model_response(evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
         You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
         Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
@@ -313,7 +312,7 @@ def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case
 
 def generate_python_code(selected_solution, test_case_analysis):
     try:
-        print("Step 7: First python code: ")
+        # print("Step 7: First python code: ")
         return model_response(get_code_generation_template(selected_solution, test_case_analysis), system_prompt = """
         You are tasked with generating Python code for the selected solution that passed all test cases. 
         Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
@@ -384,7 +383,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
-            print(f"Code feedback: {improvement_feedback}")
+            # print(f"Code feedback: {improvement_feedback}")
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
