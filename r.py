@@ -141,8 +141,22 @@ def retry(func, max_attempts, *args, **kwargs):
 def extract_python_code(response):
     return response
 
-# Function to execute the extracted python code in memory with mocked input()
+def check_code_structure(extracted_code):
+    """Check if the code contains function definitions and the main block."""
+    if '__name__ == "__main__"' not in extracted_code:
+        return False, "Missing `if __name__ == \"__main__\":` block."
+    
+    if 'def ' not in extracted_code:
+        return False, "No function definitions found in the code."
+    
+    return True, None
+
 def run_extracted_code(extracted_code, test_input):
+    # Check if the structure of the code is valid
+    is_valid, error_message = check_code_structure(extracted_code)
+    if not is_valid:
+        return None, f"Code structure error: {error_message}"
+    
     output = io.StringIO()
     error = None
     test_input_lines = [line.strip() for line in test_input.strip().split('\n') if line.strip()]
@@ -152,7 +166,7 @@ def run_extracted_code(extracted_code, test_input):
             raise ValueError("Not enough input data provided")
         return test_input_lines.pop(0)
 
-    local_scope = {}
+    local_scope = {'__name__': '__main__'}
     
     with patch('builtins.input', mock_input), contextlib.redirect_stdout(output):
         try:
@@ -162,9 +176,6 @@ def run_extracted_code(extracted_code, test_input):
             # Execute the compiled code
             exec(code_obj, local_scope)
             
-            # If there's a main function, call it
-            if 'main' in local_scope:
-                local_scope['main']()
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             
@@ -176,11 +187,7 @@ def run_extracted_code(extracted_code, test_input):
             code_lines = extracted_code.split('\n')
             error_line = code_lines[line_no - 1] if line_no <= len(code_lines) else "Unknown"
             
-            error = f"Error occurred on line {line_no}:\n"
-            error += f"Code: {error_line.strip()}\n"
-            error += f"Exception: {exc_type.__name__}: {str(exc_value)}\n"
-            error += "Traceback:\n"
-            error += ''.join(traceback.format_tb(exc_traceback))
+            error = f"Error occurred on line {line_no}: {exc_type.__name__}: {str(exc_value)}\n"
 
     return output.getvalue(), error
 
