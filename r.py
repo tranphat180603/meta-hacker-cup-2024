@@ -146,8 +146,13 @@ def extract_python_code(response):
 
 def check_code_structure(extracted_code):
     """Check if the code contains function definitions and the main block."""
-    if '__name__ == "__main__"' not in extracted_code:
-        return False, "Missing `if __name__ == \"__main__\":` block."
+    
+    # Strip any leading/trailing whitespace to ensure formatting issues are avoided
+    extracted_code = extracted_code.strip()
+    
+    # Check for either single or double quotes around __main__
+    if not ("__name__ == '__main__'" in extracted_code or '__name__ == "__main__"' in extracted_code):
+        return False, "Missing `if __name__ == '__main__':` block or incorrect quoting."
     
     if 'def ' not in extracted_code:
         return False, "No function definitions found in the code."
