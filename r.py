@@ -363,9 +363,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         if best_score > 0:
             print(f"Returning best code with score {best_score}% after {attempts} attempts.")
             return best_code, best_score
-        else:
-            print("No valid solution generated.")
-            return None
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
@@ -411,9 +408,9 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                 # Write the best score to the file
                 file.write(f"Problem: {problem['name']}, Score: {best_score}%\n")
 
-            except Exception as e:
-                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
-                file.write(f"Problem: {problem['name']}, Error: {str(e)}\n")
+            except Exception:
+                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {error} after {code_iterations}")
+                file.write(f"Problem: {problem['name']}, Error: {str(error)}\n")
     print("FINISHED!!!")
 
 
