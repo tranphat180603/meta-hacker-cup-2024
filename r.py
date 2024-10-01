@@ -314,77 +314,71 @@ def request_code_improvement(generated_code, error_message):
 
 # Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
-    try:
-        # Step 1: Understand the problem
-        understand = retry(understanding_problem, max_num_retry, problem_description)
+    # Step 1: Understand the problem
+    understand = retry(understanding_problem, max_num_retry, problem_description)
 
-        # Step 2: Analyze test cases
-        analysis = retry(analyze_test_cases, max_num_retry, problem_description)
+    # Step 2: Analyze test cases
+    analysis = retry(analyze_test_cases, max_num_retry, problem_description)
 
-        # Step 3: Generate AI test cases
-        ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
+    # Step 3: Generate AI test cases
+    ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
 
-        # Step 4: Generate solution ideas
-        solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
+    # Step 4: Generate solution ideas
+    solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
 
-        # Step 5: Evaluate solutions
-        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
+    # Step 5: Evaluate solutions
+    evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
 
-        # Step 6: Generate Python code
-        code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
+    # Step 6: Generate Python code
+    code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
 
-        generated_code = extract_python_code(code_solution['solution_code']['code'])
-        attempts = 0
-        best_score = 0
-        best_code = generated_code
+    generated_code = extract_python_code(code_solution['solution_code']['code'])
+    attempts = 0
+    best_score = 0
+    best_code = generated_code
 
-        # Start the code iteration loop
-        while attempts < code_iterations:
-            print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
-            print(f"Evaluating code...")
-            # Run the generated code
-            score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                generated_code, test_input=test_input, test_output=test_output
-            )
-            # Log the output and error for debugging purposes
-            if error:
-                print(f"Error during code execution: {error}")
-            elif failed_cases:
-                print(f"Failed cases: {failed_cases}")
+    # Start the code iteration loop
+    while attempts < code_iterations:
+        print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
+        # Run the generated code
+        score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+            generated_code, test_input=test_input, test_output=test_output
+        )
+        # Log the output and error for debugging purposes
+        if error:
+            print(f"Error during code execution: {error}")
+        elif failed_cases:
+            print(f"Failed cases: {failed_cases}")
 
-            # If this score is better than the previous best, update the best result
-            if score > best_score:
-                best_score = score
-                best_code = generated_code
+        # If this score is better than the previous best, update the best result
+        if score > best_score:
+            best_score = score
+            best_code = generated_code
 
-            # If we achieve a perfect score, stop and return the best code
-            if best_score == 100:
-                print(f"Perfect score achieved: {best_score}%")
-                return best_code
-
-            # Improvement feedback is empty, continue to the next iteration
-            improvement_feedback = error if error else failed_cases
-
-            # print(f"Improvement feedback: {improvement_feedback}")
-
-            # Retry the code improvement
-            new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
-            if not new_code:
-                print("Error in 'request_code_improvement'. Returned None.")
-                break
-            generated_code = new_code
-            attempts += 1
-
-        # After max iterations, return the best result so far if it exists
-        if best_score > 0:
-            print(f"Returning best code with score {best_score}% after {attempts} attempts.")
+        # If we achieve a perfect score, stop and return the best code
+        if best_score == 100:
+            print(f"Perfect score achieved: {best_score}%")
             return best_code
-        else:
-            print("No valid solution generated.")
-            return None
 
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        # Improvement feedback is empty, continue to the next iteration
+        improvement_feedback = error if error else failed_cases
+
+        # print(f"Improvement feedback: {improvement_feedback}")
+
+        # Retry the code improvement
+        new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
+        if not new_code:
+            print("Error in 'request_code_improvement'. Returned None.")
+            break
+        generated_code = new_code
+        attempts += 1
+
+    # After max iterations, return the best result so far if it exists
+    if best_score > 0:
+        print(f"Returning best code with score {best_score}% after {attempts} attempts.")
+        return best_code
+    else:
+        print("No valid solution generated.")
         return None
 
 
