@@ -179,12 +179,10 @@ def get_solution_ideas_template(refine_problem_understanding, test_case_analysis
     {{
       "solutions": [
         {{
-          "solution_1": {{
-            "name": "Give the name or category of the first (basic) approach.",
-            "strategy": "Explain the general strategy for this approach."
-          }},
-          "and so on... if I require more ideas"
+          "name": "Give the name or category of the first approach.",
+          "strategy": "Explain the general strategy for this approach."
         }}
+        // Additional solution objects will be added here up to the requested number
       ]
     }}
     """
