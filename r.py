@@ -249,7 +249,7 @@ def generate_solution_ideas(problem_description,test_case_analysis , num_solutio
     print("Step 4: Generate solutions")
     return model_response(get_solution_ideas_template(problem_description, test_case_analysis,num_solutions))
 
-def evaluate_solutions_f(solution_ideas, problem_understanding, problem_difficulty):
+def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis ,problem_difficulty):
     print("Step 5: Evaluating solutions: ")
     return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, test_case_analysis,problem_difficulty))
 
