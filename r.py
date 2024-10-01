@@ -21,7 +21,8 @@ from p import (
     get_solution_ideas_template,
     evaluate_solutions_template,
     get_code_generation_template,
-    iterate_public_tests
+    iterate_public_tests,
+    refine_problem_understanding_template
 )
 
 def parse_args():
@@ -344,7 +345,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
 
         #Step 3: Refine understanding
-        refine_understanding = retry(get_refine_understanding(response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis']))
+        refine_understanding = retry(get_refine_understanding, max_num_retry, response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'])
 
         # Step 3: Generate AI test cases
         ai_test = retry(self_generate_test_cases, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'])
