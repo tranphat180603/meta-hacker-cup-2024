@@ -119,7 +119,7 @@ def response_json(response_string):
         parsed_json = json.loads(cleaned_response)
         return parsed_json
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
+        # print(f"Error decoding JSON: {e}")
         return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -325,16 +325,16 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
         # Start the code iteration loop
         while attempts < code_iterations:
-            print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
+            # print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
             # Run the generated code
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
             )
             # Log the output and error for debugging purposes
-            if error:
-                print(f"Error during code execution: {error}")
-            elif failed_cases:
-                print(f"Failed cases: {failed_cases}")
+            # if error:
+            #     print(f"Error during code execution: {error}")
+            # elif failed_cases:
+            #     print(f"Failed cases: {failed_cases}")
 
             # If this score is better than the previous best, update the best result
             if score > best_score:
@@ -414,6 +414,7 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
             except Exception as e:
                 print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e}")
                 file.write(f"Problem: {problem['name']}, Error: {str(e)}\n")
+    print("FINISHED!!!")
 
 
 
@@ -461,10 +462,11 @@ def main():
     # Wait for all processes to finish
     for p in processes:
         p.join()
+    
 
 if __name__ == "__main__":
     main()
 
 
 
-# python r.py --problem_name "cheeseburger_corollary_ch2" --code_iterations 100 --max_num_retry 10 --num_workers 4
+# python r.py --code_iterations 100 --max_num_retry 10 --num_workers 4
