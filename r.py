@@ -35,7 +35,7 @@ def parse_args():
 
 # Load the model and tokenizer
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.3, do_sample = True, device_map="auto")
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.2, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Apply chat template for all messages
@@ -241,7 +241,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        # print("Step 1: Understanding problem:")
+        print("Step 1: Understanding problem:")
         return model_response(get_problem_understanding_template(problem_description), system_prompt = """
         You are a specialized assistant whose task is to provide a clear and structured JSON representation of a programming problem's details. 
         You will be given a problem description and must produce a JSON output summarizing the problem's goal, constraints, test cases, important ideas, and difficulty assessment. 
@@ -253,7 +253,7 @@ def understanding_problem(problem_description):
 
 def analyze_test_cases(problem_description):
     try:
-        # print("Step 2: Analyzing test cases: ")
+        print("Step 2: Analyzing test cases: ")
         return model_response(analyze_original_test_cases_template(problem_description), system_prompt = """
         You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
         Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
@@ -265,7 +265,7 @@ def analyze_test_cases(problem_description):
 
 def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
-        # print("Step 3: Refine problem understandings: ")
+        print("Step 3: Refine problem understandings: ")
         return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
         You are tasked with refining the problem understanding based on new insights from test case analysis. 
         Focus on updating constraints, identifying edge cases, and correcting any discrepancies between the original understanding and test cases. 
@@ -277,7 +277,7 @@ def get_refine_understanding(problem_understanding, test_case_analysis):
 
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        # print("Step 4: Generate more sample test cases")
+        print("Step 4: Generate more sample test cases")
         return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
         You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
         Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
@@ -288,7 +288,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        # print("Step 5: Generate solutions")
+        print("Step 5: Generate solutions")
         return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
         You are tasked with generating solution ideas based on the provided problem description and test case analysis. 
         Your job is to provide multiple solution approaches that can pass all test cases, including original and AI-generated ones. 
@@ -300,7 +300,7 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 
 def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     try:
-        # print("Step 6: Evaluating solutions: ")
+        print("Step 6: Evaluating solutions: ")
         return model_response(evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
         You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
         Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
@@ -312,7 +312,7 @@ def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case
 
 def generate_python_code(selected_solution, test_case_analysis):
     try:
-        # print("Step 7: First python code: ")
+        print("Step 7: First python code: ")
         return model_response(get_code_generation_template(selected_solution, test_case_analysis), system_prompt = """
         You are tasked with generating Python code for the selected solution that passed all test cases. 
         Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
@@ -324,6 +324,7 @@ def generate_python_code(selected_solution, test_case_analysis):
 
 def request_code_improvement(generated_code, error_message):
     try:
+        print("Step 8: Start iterating: ")
         return model_response(iterate_public_tests(generated_code, error_message), system_prompt = """
         You are tasked with modifying and improving Python code to fix a specific error based on the provided error message. 
         Focus on addressing the issue at the indicated line and provide the improved code. 
@@ -401,57 +402,64 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         print(f"ERROR OCCURRED: {str(e)}")
         return None, 0
 
-def process_problems(problem_batch, code_iterations, max_num_retry):
-    total_problems = len(problem_batch)
-    # Open a file to log results
-    with open('results.txt', 'w') as file:
-        # Process each problem
+# Process problems on a specific GPU
+def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
+    torch.cuda.set_device(gpu_id)  # Set GPU for the process
+    with open(f'gpu_{gpu_id}_results.txt', 'w') as file:
+        total_problems = len(problem_batch)
         for index, problem in enumerate(problem_batch, 1):
             try:
-                print(f"Running problem {index}/{total_problems}: {problem['name']} from year {problem['year']} round {problem['round']}")
-                
+                print(f"Running problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']}")
                 problem_description = problem["problem_description"]
                 input_data = problem["sample_input"]
                 expected_output = problem["sample_output"]
-
-                generated_code, best_score = run_full_process(
-                    problem_description,
-                    input_data,
-                    expected_output,
-                    code_iterations=code_iterations,
-                    max_num_retry=max_num_retry
-                )
-
+                generated_code, best_score = run_full_process(problem_description, input_data, expected_output, code_iterations, max_num_retry)
                 if best_score > 0:
-                    print(f"Problem {index}/{total_problems}: {problem['name']} passed with score {best_score}%!")
+                    print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} passed with score {best_score}%")
                 else:
-                    print(f"Problem {index}/{total_problems}: {problem['name']} failed with errors.")
-                # Write the best score to the file
+                    print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} failed.")
                 file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
-
             except Exception as e:
-                print(f"Error processing problem {index}/{total_problems}: {problem['name']}: {e} after {code_iterations} code iterations.")
+                print(f"Error processing problem {index}/{total_problems} on GPU {gpu_id}: {str(e)}")
                 file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
-    print("FINISHED!!!")
+    print(f"Finished processing on GPU {gpu_id}!")
 
-# Main function to run the process
+# Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
 
-    # Load the dataset
+    # Load dataset
     ds = load_dataset("hackercupai/hackercup")
 
-    # Extract problem cases from the current split
+    # Extract problem cases
     problem_cases = extract_problem_cases_with_io(ds)
 
-    # Iterate to find the exact problem using its name when trying to solve 1 particular problem
+    # Find a specific problem if given
     if args.problem_name:
         problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
         if not problem_cases:
             print(f"No problem found with the name '{args.problem_name}'")
             return
 
-    process_problems(problem_cases, args.code_iterations, args.max_num_retry)
+    # Split problem cases into 4 batches for 4 GPUs
+    num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
+    batch_size = max(1, len(problem_cases) // num_workers)
+    problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+
+    # Spawn workers (one for each GPU)
+    processes = []
+    for i in range(num_workers):
+        gpu_id = i  # Each worker gets a separate GPU
+        problem_batch = problem_batches[i]
+        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
+        processes.append(p)
+        p.start()
+
+    # Wait for all processes to complete
+    for p in processes:
+        p.join()
+
+    print("All GPU processing finished.")
 
 if __name__ == "__main__":
     main()
