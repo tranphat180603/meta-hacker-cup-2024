@@ -263,9 +263,21 @@ def analyze_test_cases(problem_description):
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
 
+def refine_understanding(problem_understanding, test_case_analysis):
+        try:
+        print("Step 3: Refine problem understandings: ")
+        return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
+        You are tasked with refining the problem understanding based on new insights from test case analysis. 
+        Focus on updating constraints, identifying edge cases, and correcting any discrepancies between the original understanding and test cases. 
+        Ensure the refined understanding is presented in valid JSON format without any additional text or explanations.
+        """)
+    except Exception as e:
+        print(f"Error in analyze_test_cases: {str(e)}")
+        return None
+
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        print("Step 3: Generate more sample test cases")
+        print("Step 4: Generate more sample test cases")
         return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
         You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
         Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
@@ -276,7 +288,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        print("Step 4: Generate solutions")
+        print("Step 5: Generate solutions")
         return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
         You are tasked with generating solution ideas based on the provided problem description and test case analysis. 
         Your job is to provide multiple solution approaches that can pass all test cases, including original and AI-generated ones. 
@@ -288,7 +300,7 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 
 def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
     try:
-        print("Step 5: Evaluating solutions: ")
+        print("Step 6: Evaluating solutions: ")
         return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
         You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
         Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
@@ -300,7 +312,7 @@ def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analys
 
 def generate_python_code(selected_solution, test_case_analysis):
     try:
-        print("Step 6: First python code: ")
+        print("Step 7: First python code: ")
         return model_response(get_code_generation_template(selected_solution, test_case_analysis), system_prompt = """
         You are tasked with generating Python code for the selected solution that passed all test cases. 
         Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
@@ -331,14 +343,17 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         # Step 2: Analyze test cases
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
 
+        #Step 3: Refine understanding
+        refine_understanding = retry(refine_understanding(response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis']))
+
         # Step 3: Generate AI test cases
-        ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
+        ai_test = retry(self_generate_test_cases, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'])
 
         # Step 4: Generate solution ideas
-        solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
+        solutions = retry(generate_solution_ideas, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'], num_solutions=5)
 
         # Step 5: Evaluate solutions
-        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
+        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(refine_understanding)['refined_problem_understanding']['difficulty_assessment_update'])
 
         # Step 6: Generate Python code
         code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])

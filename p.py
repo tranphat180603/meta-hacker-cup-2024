@@ -6,6 +6,7 @@ def get_problem_understanding_template(problem_description):
     Pay attention to small details, nuances, notes, and examples in the problem description.
 
     This is the problem: 
+    
     '{problem_description}'
     
     Provide your understanding in the following JSON structure:
@@ -33,7 +34,11 @@ def get_problem_understanding_template(problem_description):
 
 def analyze_original_test_cases_template(problem_description):
     return f"""
-    Task: Based on the problem description: '{problem_description}', your job is to analyze the original test case input and output, map each component to its corresponding variable from the problem description, and explain how these inputs lead to the specified output based on the logic and constraints of the problem.
+    Task: Based on the problem description: 
+    
+    '{problem_description}', 
+    
+    your job is to analyze the original test case input and output, map each component to its corresponding variable from the problem description, and explain how these inputs lead to the specified output based on the logic and constraints of the problem.
     
     You should start by identifying the format of the test cases and specifying the structure of the input and output.
     
@@ -88,10 +93,62 @@ def analyze_original_test_cases_template(problem_description):
       ]
     }}
     """
-
-def generate_ai_test_cases_prompt(problem_description,test_case_analysis):
+def refine_problem_understanding_template(problem_understanding, test_case_analysis):
     return f"""
-    Task: Based on #Sample Input and #Sample Output of {problem_description} provided and the following analysis: '{test_case_analysis}', generate 5 new AI-generated test cases. The goal is to observe patterns from the existing test cases and create new cases that are diverse and challenge different edge cases of the problem.
+    Task: Now that you have analyzed the test cases and re-evaluated your initial understanding, refine the problem understanding. Focus on any new insights, corrections, or additional ideas that emerged from examining the test cases.
+
+    Take into consideration:
+    - Any edge cases that were not originally captured.
+    - Any constraints or nuances that were missed in the original understanding.
+    - The input-output structures observed in the test cases, which might differ from the original understanding.
+    
+    Your goal is to provide a refined understanding of the problem. Incorporate details from both the problem statement and the test cases to make the understanding more precise.
+
+    Here is the original understanding: 
+    
+    '{problem_understanding}'
+
+    Here is the test case analysis: 
+    
+    '{test_case_analysis}'
+
+    Provide the refined problem understanding in the following JSON structure:
+    {{
+      "refined_problem_understanding": {{
+        "goal": "State the refined objective of the problem.",
+        "updated_constraints": "List updated constraints and any new limitations you discovered.",
+        "edge_cases": [
+          "Describe edge case 1 if applicable.",
+          "Describe edge case 2."
+        ],
+        "test_cases_update": {{
+          "input_format": "Update the input format based on the test case analysis if it has changed.",
+          "output_format": "Update the output format based on the test case analysis."
+        }},
+        "important_ideas_update": [
+          "List updated key idea 1 using new insights from test cases.",
+          "List updated key idea 2."
+          "List additional ideas as needed."
+        ],
+        "difficulty_assessment_update": {{
+          "updated_difficulty": "Reassess the difficulty of this problem (easy, medium, hard, super hard) based on new insights from the test case analysis.",
+          "justification": "Provide reasoning for the updated difficulty assessment."
+        }}
+      }}
+    }}
+    """
+
+def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysis):
+    return f"""
+    Task: Based on the understanding of the problem 
+
+    {refine_problem_understanding} 
+
+    provided and the following analysis: 
+    
+    '{test_case_analysis}', 
+
+    generate 5 new AI-generated test cases. The goal is to observe patterns from the existing test cases and create new cases that are diverse and challenge different edge cases of the problem.
     
     Provide the new test cases in the following JSON structure:
     {{
@@ -113,9 +170,17 @@ def generate_ai_test_cases_prompt(problem_description,test_case_analysis):
 
 
 
-def get_solution_ideas_template(problem_description, test_case_analysis, num_solutions):
+def get_solution_ideas_template(refine_problem_understanding, test_case_analysis, num_solutions):
     return f"""
-    Task: Based on your analysis of {problem_description} and {test_case_analysis}, come up with {num_solutions} ideas that can pass all test cases (original and AI-generated). 
+    Task: Based on your understanding of the problem:
+
+    {refine_problem_understanding} 
+
+    and analysis of the test cases:
+
+    {test_case_analysis}, 
+
+    come up with {num_solutions} ideas that can pass all test cases (original and AI-generated). 
 
     Provide the ideas in the following JSON structure:
     {{
@@ -131,12 +196,16 @@ def get_solution_ideas_template(problem_description, test_case_analysis, num_sol
     }}
     """
 
-def evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
+def evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     return f"""
-    Task: You are given multiple solutions based on the analysis of the solution ideas: '{solution_ideas}'. Your goal is to choose the best solution based on the description below.
+    Task: You are given multiple solutions based on the analysis of the solution ideas: 
+
+    '{solution_ideas}'. 
+
+    Your goal is to choose the best solution based on the description below.
 
     Problem understanding:
-    Goal: '{problem_understanding.get('understanding', {}).get('goal', 'No goal specified')}'
+    Goal: '{problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}'
     
     Guidelines:
     - The main consideration should be that the solution can fully solve the problem in a simple and robust manner, especially given the difficulty level ('{problem_difficulty}').
@@ -148,13 +217,9 @@ def evaluate_solutions_template(solution_ideas, problem_understanding, test_case
         "selected_solution": {{
             "solution_name": "The name of the chosen solution",
             "justification": {{
-                "goal_alignment": "Explain how the solution addresses the main goal of the problem: '{problem_understanding.get('understanding', {}).get('goal', 'No goal provided')}'.",
-                "constraint_handling": "Evaluate how well the solution meets the problem's constraints: '{problem_understanding.get('understanding', {}).get('constraints', 'No constraints provided')}'.",
-                "input_output_handling": {{
-                    "input_format": "Evaluate whether the solution correctly handles the input format: '{test_case_analysis}.",
-                    "output_format": "Evaluate whether the solution produces the correct output format: '{test_case_analysis}'."
-                }},
-                "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: '{problem_understanding.get('understanding', {}).get('important_ideas', 'No key ideas provided')}'.",
+                "goal_alignment": "Explain how the solution addresses the main goal of the problem: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal provided')}'.",
+                "constraint_handling": "Evaluate how well the solution meets the problem's constraints: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('constraints', 'No constraints provided')}'.",
+                "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('important_ideas', 'No key ideas provided')}'.",
                 "edge_case_handling": "Evaluate how the solution handles edge cases (if applicable).",
                 "time_efficiency": "Provide the estimated time complexity and evaluate if it's suitable given the constraints.",
                 "space_efficiency": "Provide the estimated space complexity and evaluate if it's efficient."
@@ -172,27 +237,34 @@ def evaluate_solutions_template(solution_ideas, problem_understanding, test_case
 
 def get_code_generation_template(selected_solution, test_case_analysis):
     return f"""
-    Task: Now that you’ve identified the solution: '{selected_solution}' that passed all test cases, write Python code for that solution.
-    Use your understanding of the input-output structure from: '{test_case_analysis}' to write valid Python code.
+    You are tasked with generating Python code for the solution: 
+    '{selected_solution}' 
 
-    **Guidelines**:
-    1. You must divide the fixed code into small sub-functions, with meaningful names and functionality. Each function should be no longer than 10 lines of code.
-    2. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly. Ensure the code can handle multiple test cases as described in the problem and parse the input accordingly.
-    3. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
-    4. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
+    based on the provided test case analysis: 
 
-    
-    Provide the Python code in this structured JSON format:
-    {{
-      "solution_code": {{
-        "sample_input": "the input of the first test case"
-        "sample_output" "the output of the first test case"
+    '{test_case_analysis}'. 
+
+    Your code should solve the problem and pass all test cases, using the specified input-output structure. 
+
+    Guidelines:
+    1. Divide the code into small, well-named sub-functions, each no longer than 10 lines.
+    2. Use Python's built-in `input()` function to handle input directly. Do not use `sys.stdin` or `input = sys.stdin.read`.
+    3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
+    4. Use the `if __name__ == "__main__":` block to run the solution.
+    5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
+
+    Provide the Python code in this JSON format:
+    {
+      "solution_code": {
+        "sample_input": "Extract the correct first test case input",
+        "sample_output": "Expected output for the first test case",
         "language": "Python",
-        "code": "Your Python code as a string here, make sure the code can process sample_input and sample_output",
-        "solution_name": "the name of the chosen solution",
-        "description": "A brief description of the code based on the solution. Explain how the code fully implements the idea of the solution, strictly adhering to the input-output structure of the test cases."
-      }}
-    }}
+        "code": "Your Python code as a string here, ensuring it can process the input and output correctly",
+        "solution_name": "Name of the chosen solution",
+        "description": "Brief explanation of how the code implements the solution."
+      }
+    }
+
     """
 
 def iterate_public_tests(generated_code, error_message):
