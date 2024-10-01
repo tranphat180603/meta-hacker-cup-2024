@@ -147,10 +147,6 @@ def extract_python_code(response):
 def check_code_structure(extracted_code):
     """Check if the code contains function definitions and the main block."""
     
-    # Strip any leading/trailing whitespace to ensure formatting issues are avoided
-    print("Crash here1")
-    extracted_code = extracted_code.strip()
-    
     # Check for either single or double quotes around __main__
     if not ("__name__ == '__main__'" in extracted_code or '__name__ == "__main__"' in extracted_code):
         return False, "Missing `if __name__ == '__main__':` block or incorrect quoting."
@@ -168,7 +164,6 @@ def run_extracted_code(extracted_code, test_input):
     
     output = io.StringIO()
     error = None
-    print("Crash here2")
     test_input_lines = [line.strip() for line in test_input.strip().split('\n') if line.strip()]
 
     def mock_input():
