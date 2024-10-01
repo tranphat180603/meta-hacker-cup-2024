@@ -29,7 +29,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
-    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") tam thoi bo multiprocessing
+    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") 
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
@@ -37,7 +37,7 @@ def parse_args():
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
 model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.2, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-
+print(f"USING MODEL: {model_name}")
 # Apply chat template for all messages
 def apply_chat_template(messages):
     return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
