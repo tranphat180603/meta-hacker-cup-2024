@@ -154,9 +154,9 @@ def check_code_structure(extracted_code):
 
 def run_extracted_code(extracted_code, test_input):
     # Check if the structure of the code is valid
-    is_valid, error_message = check_code_structure(extracted_code)
-    if not is_valid:
-        return None, f"Code structure error: {error_message}"
+    # is_valid, error_message = check_code_structure(extracted_code)
+    # if not is_valid:
+    #     return None, f"Code structure error: {error_message}"
     
     output = io.StringIO()
     error = None

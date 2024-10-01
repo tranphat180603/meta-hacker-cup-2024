@@ -178,8 +178,8 @@ def get_code_generation_template(selected_solution, test_case_analysis):
     **Guidelines**:
     1. You must divide the fixed code into small sub-functions, with meaningful names and functionality. Each function should be no longer than 10 lines of code.
     2. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly. Ensure the code can handle multiple test cases as described in the problem and parse the input accordingly.
-    4. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
-    5. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
+    3. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
+    4. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
 
     
     Provide the Python code in this structured JSON format:
@@ -201,9 +201,11 @@ def iterate_public_tests(generated_code, error_message):
 
     Guidelines:
     1. Fix the issue on the specific line mentioned in the error message.
-    3. Never use input = sys.stdin.read to read input.
-    4. Ensure that the input() function is used to read input directly and in the correct format.
-    5. **Only return the updated Python code in JSON format. Do not include any other text.**
+    2. You must divide the fixed code into small sub-functions, with meaningful names and functionality. Each function should be no longer than 10 lines of code.
+    3. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly. Ensure the code can handle multiple test cases as described in the problem and parse the input accordingly.
+    4. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
+    5. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
+    6. **Only return the updated Python code in JSON format. Do not include any other text.**
 
     Provide the Python code in the following JSON format:
     {{
