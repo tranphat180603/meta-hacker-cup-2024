@@ -91,7 +91,6 @@ def refine_problem_understanding_template(problem_understanding, test_case_analy
     Task: Now that you have analyzed the test cases and re-evaluated your initial understanding, refine the problem understanding. Focus on any new insights, corrections, or additional ideas that emerged from examining the test cases.
 
     Take into consideration:
-    - Any edge cases that were not originally captured.
     - Any constraints or nuances that were missed in the original understanding.
     - The input-output structures observed in the test cases, which might differ from the original understanding.
     
@@ -110,10 +109,7 @@ def refine_problem_understanding_template(problem_understanding, test_case_analy
       "refined_problem_understanding": {{
         "goal": "State the refined objective of the problem.",
         "updated_constraints": "List updated constraints and any new limitations you discovered.",
-        "edge_cases": [
-          "Describe edge case 1 if applicable.",
-          "Describe edge case 2."
-        ],
+
         "test_cases_update": {{
           "input_format": "Update the input format based on the test case analysis if it has changed.",
           "output_format": "Update the output format based on the test case analysis."
@@ -228,35 +224,34 @@ def evaluate_solutions_template(solution_ideas, refine_problem_understanding, te
 
 def get_code_generation_template(selected_solution, test_case_analysis):
     return f"""
-    You are tasked with generating Python code for the solution: 
-    '{selected_solution}' 
+You are tasked with generating Python code for the solution: 
+{selected_solution}
 
-    based on the provided test case analysis: 
+based on the provided test case analysis: 
 
-    '{test_case_analysis}'. 
+{test_case_analysis}
 
-    Your code should solve the problem and pass all test cases, using the specified input-output structure. 
+Your code should solve the problem and pass all test cases, using the specified input-output structure. 
 
-    Guidelines:
-    1. Divide the code into small, well-named sub-functions, each no longer than 10 lines.
-    2. Use Python's built-in `input()` function to handle input directly. Do not use `sys.stdin` or `input = sys.stdin.read`.
-    3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
-    4. Use the `if __name__ == "__main__":` block to run the solution.
-    5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
+Guidelines:
+1. Divide the code into small, well-named sub-functions, each no longer than 10 lines.
+2. Use Python's built-in `input()` function to handle input directly. Do not use `sys.stdin` or `input = sys.stdin.read`.
+3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
+4. Use the `if __name__ == "__main__":` block to run the solution.
+5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
 
-    Provide the Python code in this JSON format:
-    {
-      "solution_code": {
-        "sample_input": "Extract the correct first test case input",
-        "sample_output": "Expected output for the first test case",
-        "language": "Python",
-        "code": "Your Python code as a string here, ensuring it can process the input and output correctly",
-        "solution_name": "Name of the chosen solution",
-        "description": "Brief explanation of how the code implements the solution."
-      }
-    }
-
-    """
+Provide the Python code in this JSON format:
+{{
+  "solution_code": {{
+    "sample_input": "Extract the correct first test case input",
+    "sample_output": "Expected output for the first test case",
+    "language": "Python",
+    "code": "Your Python code as a string here, ensuring it can process the input and output correctly",
+    "solution_name": "Name of the chosen solution",
+    "description": "Brief explanation of how the code implements the solution."
+  }}
+}}
+"""
 
 def iterate_public_tests(generated_code, error_message):
     return f"""
