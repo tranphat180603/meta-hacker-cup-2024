@@ -134,7 +134,7 @@ def retry(func, max_attempts, *args, **kwargs):
             if parsed_response is not None and isinstance(parsed_response, dict):
                 return parsed_response
         except Exception as e:
-            pass  # Silently handle errors and retry
+            print("Error at function retry")
 
         attempts += 1
     
@@ -234,74 +234,81 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 #BESIDES THE CONTENT, IT IS POSSIBLE PARSE SYSTEM PROMPT HERE
 
 def understanding_problem(problem_description): 
-    print("Step 1: Understanding problem:")
-    return model_response(get_problem_understanding_template(problem_description))
+    try:
+        print("Step 1: Understanding problem:")
+        return model_response(get_problem_understanding_template(problem_description))
+    except Exception as e:
+        print(f"Error in understanding_problem: {str(e)}")
+        return None
 
 def analyze_test_cases(problem_description):
-    print("Step 2: Analyzing test cases: ")
-    return model_response(analyze_original_test_cases_template(problem_description))
+    try:
+        print("Step 2: Analyzing test cases: ")
+        return model_response(analyze_original_test_cases_template(problem_description))
+    except Exception as e:
+        print(f"Error in analyze_test_cases: {str(e)}")
+        return None
 
-def self_generate_test_cases(problem_description,test_case_analysis):
-    print("Step 3: Generate more sample test cases")
-    return model_response(generate_ai_test_cases_prompt(problem_description,test_case_analysis))
+def self_generate_test_cases(problem_description, test_case_analysis):
+    try:
+        print("Step 3: Generate more sample test cases")
+        return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis))
+    except Exception as e:
+        print(f"Error in self_generate_test_cases: {str(e)}")
+        return None
 
-def generate_solution_ideas(problem_description,test_case_analysis , num_solutions):
-    print("Step 4: Generate solutions")
-    return model_response(get_solution_ideas_template(problem_description, test_case_analysis,num_solutions))
+def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
+    try:
+        print("Step 4: Generate solutions")
+        return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions))
+    except Exception as e:
+        print(f"Error in generate_solution_ideas: {str(e)}")
+        return None
 
-def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis ,problem_difficulty):
-    print("Step 5: Evaluating solutions: ")
-    return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, test_case_analysis,problem_difficulty))
+def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
+    try:
+        print("Step 5: Evaluating solutions: ")
+        return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty))
+    except Exception as e:
+        print(f"Error in evaluate_solutions_f: {str(e)}")
+        return None
 
 def generate_python_code(selected_solution, test_case_analysis):
-    print("Step 6: First python code: ")
-    return model_response(get_code_generation_template(selected_solution, test_case_analysis))
+    try:
+        print("Step 6: First python code: ")
+        return model_response(get_code_generation_template(selected_solution, test_case_analysis))
+    except Exception as e:
+        print(f"Error in generate_python_code: {str(e)}")
+        return None
 
 def request_code_improvement(generated_code, error_message):
-    return model_response(iterate_public_tests(generated_code, error_message))
+    try:
+        return model_response(iterate_public_tests(generated_code, error_message))
+    except Exception as e:
+        print(f"Error in request_code_improvement: {str(e)}")
+        return None
+
 
 # Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
     try:
         # Step 1: Understand the problem
         understand = retry(understanding_problem, max_num_retry, problem_description)
-        if not understand:
-            print("Error in 'understanding_problem'. Returned None.")
-            return None
-        print("Step 1 completed successfully.")
 
         # Step 2: Analyze test cases
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
-        if not analysis:
-            print("Error in 'analyze_test_cases'. Returned None.")
-            return None
-        print("Step 2 completed successfully.")
 
         # Step 3: Generate AI test cases
         ai_test = retry(self_generate_test_cases, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'])
-        if not ai_test:
-            print("Error in 'self_generate_test_cases'. Returned None.")
-            return None
-        print("Step 3 completed successfully.")
 
         # Step 4: Generate solution ideas
         solutions = retry(generate_solution_ideas, max_num_retry, problem_description, response_json(analysis)['original_test_case_analysis'], num_solutions=3)
-        if not solutions:
-            print("Error in 'generate_solution_ideas'. Returned None.")
-            return None
-        print("Step 4 completed successfully.")
 
         # Step 5: Evaluate solutions
         evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
-        if not evaluate_solutions:
-            print("Error retrieving 'evaluate_solutions' from the evaluation response.")
-            return None
 
         # Step 6: Generate Python code
         code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
-        if not code_solution:
-            print("Error in 'generate_python_code'. Returned None.")
-            return None
 
         generated_code = extract_python_code(code_solution['solution_code']['code'])
         attempts = 0
