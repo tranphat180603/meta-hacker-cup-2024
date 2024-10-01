@@ -275,7 +275,8 @@ def iterate_public_tests(generated_code, error_message):
 
     '{generated_code}',
 
-     modify and improve the Python code to fix the specific error. If there are many failed cases. Think of another solution!
+    If the problem is: there are many failed test cases. Think of another solution that may improve the passed rate.
+    If the issue is Execution/Runtime error. Focus specificly on the line causes the error and try to fix it!
 
     Guidelines:
     1. The fixed code should be robust and general, and work for other input examples as well. The fixed should be different from the original code, and not just a copy-paste of the original code.

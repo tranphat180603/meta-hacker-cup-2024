@@ -29,7 +29,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
-    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
+    # parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") tam thoi bo multiprocessing
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
@@ -185,8 +185,8 @@ def run_extracted_code(extracted_code, test_input):
             code_lines = extracted_code.split('\n')
             error_line = code_lines[line_no - 1] if line_no <= len(code_lines) else "Unknown"
             
-            error = f"Error occurred on line {line_no}:\n"
-            error += f"Code: {error_line.strip()}\n"
+            error = f"Error occurred on line {line_no}: "
+            error += f"{error_line.strip()}\n"
             error += f"Exception: {exc_type.__name__}: {str(exc_value)}\n"
             print(error)
 
@@ -459,4 +459,5 @@ if __name__ == "__main__":
 
 
 
-# python r.py --code_iterations 30 --max_num_retry 10 --num_workers 4
+# python r.py --code_iterations 30 --max_num_retry 10 
+# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 
