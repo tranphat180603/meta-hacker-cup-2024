@@ -371,11 +371,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
             )
-            # Log the output and error for debugging purposes
-            # if error:
-            #     print(f"Error during code execution: {error}")
-            # elif failed_cases:
-            #     print(f"Failed cases: {failed_cases}")
 
             # If this score is better than the previous best, update the best result
             if score > best_score:
@@ -385,7 +380,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             # If we achieve a perfect score, stop and return the best code
             if best_score == 100:
                 print(f"Perfect score achieved: {best_score}%")
-                return best_code
+                return best_code, best_score
 
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
@@ -393,7 +388,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
-            new_code = new_code['solution_code']['code'] #CHAC CHAN SE FIX DUOC LOI SAI STRUCTURE
+            new_code = new_code['solution_code']['code']
 
             generated_code = new_code
             attempts += 1
@@ -404,26 +399,22 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             return best_code, best_score
 
     except Exception as e:
-        print(f"ERROR OCCURED: {str(e)}")
-        return None
+        print(f"ERROR OCCURRED: {str(e)}")
+        return None, 0
 
-
-
-def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
-    # Set the GPU for this process
-    torch.cuda.set_device(gpu_id)
-
+def process_problems(problem_batch, code_iterations, max_num_retry):
+    total_problems = len(problem_batch)
     # Open a file to log results
-    with open(f'gpu_{gpu_id}_results.txt', 'w') as file:
+    with open('results.txt', 'w') as file:
         # Process each problem
-        for problem in problem_batch:
+        for index, problem in enumerate(problem_batch, 1):
             try:
+                print(f"Running problem {index}/{total_problems}: {problem['name']} from year {problem['year']} round {problem['round']}")
+                
                 problem_description = problem["problem_description"]
                 input_data = problem["sample_input"]
                 expected_output = problem["sample_output"]
 
-                print(f"Running problem: {problem['name']} from year {problem['year']} round {problem['round']} on GPU {gpu_id}")
-                
                 generated_code, best_score = run_full_process(
                     problem_description,
                     input_data,
@@ -433,18 +424,16 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                 )
 
                 if best_score > 0:
-                    print(f"Problem: {problem['name']} passed with score {best_score}% on GPU {gpu_id}!")
+                    print(f"Problem {index}/{total_problems}: {problem['name']} passed with score {best_score}%!")
                 else:
-                    print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
+                    print(f"Problem {index}/{total_problems}: {problem['name']} failed with errors.")
                 # Write the best score to the file
-                file.write(f"Problem: {problem['name']}, Score: {best_score}%\n") #best_score = 0 -> code ran but no output
+                file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
 
             except Exception as e:
-                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e} after {code_iterations} code iterations.")
-                file.write(f"Problem: {problem['name']}, Error: {str(e)}\n") #Code could not run
+                print(f"Error processing problem {index}/{total_problems}: {problem['name']}: {e} after {code_iterations} code iterations.")
+                file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
     print("FINISHED!!!")
-
-
 
 # Main function to run the process
 def main():
@@ -456,41 +445,14 @@ def main():
     # Extract problem cases from the current split
     problem_cases = extract_problem_cases_with_io(ds)
 
-    # Iterate to find the exact problem using it's name when trying to solve 1 particular problem
+    # Iterate to find the exact problem using its name when trying to solve 1 particular problem
     if args.problem_name:
         problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
         if not problem_cases:
             print(f"No problem found with the name '{args.problem_name}'")
-            return None
+            return
 
-    # 1 problem
-    if len(problem_cases) == 1:
-        # Directly assign the problem to a single worker without splitting
-        problem_batches = [problem_cases]
-        num_workers = 1
-    else: #entrie dataset
-        # Split the problem cases into batches for each GPU
-        num_workers = min(args.num_workers, len(problem_cases))  # Limit workers to the number of problems
-        batch_size = max(1, len(problem_cases) // num_workers)  # Ensure at least one case per batch
-        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
-
-    # Set the multiprocessing start method to 'spawn'
-    mp.set_start_method('spawn', force=True)
-
-    # Create multiprocessing workers (one for each GPU)
-    processes = []
-    for i in range(num_workers):
-        gpu_id = i  # Each worker uses a different GPU
-        problem_batch = problem_batches[i]
-
-        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
-        processes.append(p)
-        p.start()
-
-    # Wait for all processes to finish
-    for p in processes:
-        p.join()
-    
+    process_problems(problem_cases, args.code_iterations, args.max_num_retry)
 
 if __name__ == "__main__":
     main()
