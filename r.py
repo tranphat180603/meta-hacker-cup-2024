@@ -220,7 +220,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
     if generated_output is None or generated_output.strip() == "":
-        return 0, error or "Error: The code ran without any problem. There's no error in parsing the input. But the output blank. Check the whole code again.", generated_output, []
+        return 0, error or "Error: The code ran without any problem. There's no error in parsing the input. But it produces no output. Please check the entire code again.", generated_output, []
     
     # If there's an error, return it
     if error:

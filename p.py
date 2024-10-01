@@ -83,8 +83,22 @@ def analyze_original_test_cases_template(problem_description):
           }},
           "and so on for all test cases..."
         }}
-      ]
+      ],
+      "test_case_reflection": {{
+        "key_observations": [
+          "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem."
+        ],
+        "variable_roles": {{
+          "variable_name": "Explain the role or significance of each variable in the problem, based on how it's used across test cases."
+        }},
+        "problem_solving_hints": [
+          "Provide hints or guidelines for approaching the problem, based on insights from the test cases."
+        ],
+        "general_formula": "If applicable, provide a general formula or approach for solving the problem, derived from analyzing the test cases.",
+      }}
     }}
+    
+    Ensure that your analysis in the 'test_case_reflection' section captures general insights about the problem that go beyond individual test cases. This should include patterns observed across all test cases, important considerations for solving the problem efficiently, and any key relationships between variables that become apparent from analyzing multiple examples.
     """
 def refine_problem_understanding_template(problem_understanding, test_case_analysis):
     return f"""
@@ -253,15 +267,22 @@ Provide the Python code in this JSON format:
 
 def iterate_public_tests(generated_code, error_message):
     return f"""
-    Task: The generated code has encountered the following issue: {error_message}. Based on the latest code: '{generated_code}', modify and improve the Python code to fix the specific error at the indicated line.
+    Task: The generated code has encountered the following issue: 
+    
+    {error_message}. 
+
+    Based on the latest code: 
+
+    '{generated_code}',
+
+     modify and improve the Python code to fix the specific error. If there are many failed cases. Think of another solution!
 
     Guidelines:
-    1. Fix the issue on the specific line mentioned in the error message.
-    2. You must divide the fixed code into small sub-functions, with meaningful names and functionality. Each function should be no longer than 10 lines of code.
-    3. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly. Ensure the code can handle multiple test cases as described in the problem and parse the input accordingly.
+    1. The fixed code should be robust and general, and work for other input examples as well. The fixed should be different from the original code, and not just a copy-paste of the original code.
+    2. You must divide the fixed code into small sub-functions, with meaningful names and functionality.
+    3. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
     4. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
     5. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
-    6. **Only return the updated Python code in JSON format. Do not include any other text.**
 
     Provide the Python code in the following JSON format:
     {{
