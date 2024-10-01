@@ -93,15 +93,14 @@ def refine_problem_understanding_template(problem_understanding, test_case_analy
     Take into consideration:
     - Any constraints or nuances that were missed in the original understanding.
     - The input-output structures observed in the test cases, which might differ from the original understanding.
-    
+    - Assume most of your original important ideas were incorrect, and base your updates on the output explanations from the test case analysis.
+
     Your goal is to provide a refined understanding of the problem. Incorporate details from both the problem statement and the test cases to make the understanding more precise.
 
     Here is the original understanding: 
-    
     '{problem_understanding}'
 
     Here is the test case analysis: 
-    
     '{test_case_analysis}'
 
     Provide the refined problem understanding in the following JSON structure:
@@ -115,9 +114,7 @@ def refine_problem_understanding_template(problem_understanding, test_case_analy
           "output_format": "Update the output format based on the test case analysis."
         }},
         "important_ideas_update": [
-          "List updated key idea 1 using new insights from test cases.",
-          "List updated key idea 2."
-          "List additional ideas as needed."
+          "Based on the output explanation in the test case analysis, update the important ideas assuming the initial understanding was mostly wrong."
         ],
         "difficulty_assessment_update": {{
           "updated_difficulty": "Reassess the difficulty of this problem (easy, medium, hard, super hard) based on new insights from the test case analysis.",
@@ -126,6 +123,7 @@ def refine_problem_understanding_template(problem_understanding, test_case_analy
       }}
     }}
     """
+
 
 def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysis):
     return f"""
