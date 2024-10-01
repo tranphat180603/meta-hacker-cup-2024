@@ -64,8 +64,9 @@ def model_response(user_content, system_prompt="You are a helpful assistant whos
     {"role": "user", "content": user_content}
     ]
     response = generate_response(messages)
-    print(response['content'])
-    return response
+    formatted_response = {"role": "assistant", "content": response}
+    print(f"{formatted_response['content']}")
+    return formatted_response["content"]
 
 # Load dataset
 ds = load_dataset("hackercupai/hackercup")
