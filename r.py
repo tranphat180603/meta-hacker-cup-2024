@@ -373,6 +373,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
+            print(f"Code feedback: {improvement_feedback}")
 
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
