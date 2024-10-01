@@ -430,6 +430,8 @@ def main():
 
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
+    
+    mp.set_start_method('spawn', force=True)
 
     # Extract problem cases
     problem_cases = extract_problem_cases_with_io(ds)
