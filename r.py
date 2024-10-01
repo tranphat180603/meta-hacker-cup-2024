@@ -12,6 +12,7 @@ import argparse
 import subprocess
 import time
 import multiprocessing as mp  # Import multiprocessing
+import sys
 
 from p import (
     get_problem_understanding_template,
@@ -71,7 +72,7 @@ ds = load_dataset("hackercupai/hackercup")
 # Extract problem cases and include sample_input and sample_output in the problem_description
 def extract_problem_cases_with_io(dataset):
     problem_cases = []
-    for example in dataset:
+    for example in dataset['full']:
         sample_input = example["sample_input"]
         sample_output = example["sample_output"]
         
@@ -378,47 +379,43 @@ def main():
     # Load the dataset
     ds = load_dataset("hackercupai/hackercup")
 
-    # Iterate over both 'sample' and 'full' datasets
-    for split_name, dataset in ds.items():
-        print(f"Processing split: {split_name}")
+    # Extract problem cases from the current split
+    problem_cases = extract_problem_cases_with_io(ds)
 
-        # Extract problem cases from the current split
-        problem_cases = extract_problem_cases_with_io(dataset)
+    # Iterate to find the exact problem using it's name when trying to solve 1 particular problem
+    if args.problem_name:
+        problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+        if not problem_cases:
+            print(f"No problem found with the name '{args.problem_name}'")
+            return None
 
-        # Iterate to find the exact problem using it's name when trying to solve 1 particular problem
-        if args.problem_name:
-            problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
-            if not problem_cases:
-                print(f"No problem found with the name '{args.problem_name}' in the {split_name} split.")
-                continue    
+    # 1 problem
+    if len(problem_cases) == 1:
+        # Directly assign the problem to a single worker without splitting
+        problem_batches = [problem_cases]
+        num_workers = 1
+    else: #entrie dataset
+        # Split the problem cases into batches for each GPU
+        num_workers = min(args.num_workers, len(problem_cases))  # Limit workers to the number of problems
+        batch_size = max(1, len(problem_cases) // num_workers)  # Ensure at least one case per batch
+        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
-        # 1 problem
-        if len(problem_cases) == 1:
-            # Directly assign the problem to a single worker without splitting
-            problem_batches = [problem_cases]
-            num_workers = 1
-        else: #entrie dataset
-            # Split the problem cases into batches for each GPU
-            num_workers = min(args.num_workers, len(problem_cases))  # Limit workers to the number of problems
-            batch_size = max(1, len(problem_cases) // num_workers)  # Ensure at least one case per batch
-            problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+    # Set the multiprocessing start method to 'spawn'
+    mp.set_start_method('spawn', force=True)
 
-        # Set the multiprocessing start method to 'spawn'
-        mp.set_start_method('spawn', force=True)
+    # Create multiprocessing workers (one for each GPU)
+    processes = []
+    for i in range(num_workers):
+        gpu_id = i  # Each worker uses a different GPU
+        problem_batch = problem_batches[i]
 
-        # Create multiprocessing workers (one for each GPU)
-        processes = []
-        for i in range(num_workers):
-            gpu_id = i  # Each worker uses a different GPU
-            problem_batch = problem_batches[i]
+        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
+        processes.append(p)
+        p.start()
 
-            p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
-            processes.append(p)
-            p.start()
-
-        # Wait for all processes to finish
-        for p in processes:
-            p.join()
+    # Wait for all processes to finish
+    for p in processes:
+        p.join()
 
 if __name__ == "__main__":
     main()
