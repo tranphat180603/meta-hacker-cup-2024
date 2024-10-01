@@ -148,8 +148,8 @@ def check_code_structure(extracted_code):
     """Check if the code contains function definitions and the main block."""
     
     # Check for either single or double quotes around __main__
-    if not ("__name__ == '__main__'" in extracted_code or '__name__ == "__main__"' in extracted_code):
-        return False, "Missing `if __name__ == '__main__':` block or incorrect quoting."
+    if not ("__name__ == __main__" in extracted_code):
+        return False, "Missing `__name__ == __main__` block"
     
     if 'def ' not in extracted_code:
         return False, "No function definitions found in the code."
@@ -232,7 +232,6 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
     print("Running the extracted code...")
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
-    print("Crash here2")
     if generated_output is None or generated_output.strip() == "":
         return 0, error or "Error: generated_output is empty", generated_output, []
     
