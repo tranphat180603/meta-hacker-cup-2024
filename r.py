@@ -263,7 +263,7 @@ def analyze_test_cases(problem_description):
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
 
-def refine_understanding(problem_understanding, test_case_analysis):
+def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
         print("Step 3: Refine problem understandings: ")
         return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
@@ -344,7 +344,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
 
         #Step 3: Refine understanding
-        refine_understanding = retry(refine_understanding(response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis']))
+        refine_understanding = retry(get_refine_understanding(response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis']))
 
         # Step 3: Generate AI test cases
         ai_test = retry(self_generate_test_cases, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'])
