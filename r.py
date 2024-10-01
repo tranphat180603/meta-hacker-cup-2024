@@ -155,26 +155,14 @@ def check_code_structure(extracted_code):
     return True, None
 
 def run_extracted_code(extracted_code, test_input):
-    # Check if test_input is None
-    if test_input is None:
-        print("Error: test_input is None")
-        return None, "Error: test_input is None"
-    
     # Check if the structure of the code is valid
     is_valid, error_message = check_code_structure(extracted_code)
     if not is_valid:
-        print(f"Code structure error: {error_message}")
         return None, f"Code structure error: {error_message}"
     
     output = io.StringIO()
     error = None
-    print("Running code...")
-    
-    try:
-        test_input_lines = [line.strip() for line in test_input.strip().split('\n') if line.strip()]
-    except AttributeError as e:
-        print(f"Error: test_input caused AttributeError: {e}")
-        return None, f"Error: test_input caused AttributeError: {e}"
+    test_input_lines = [line.strip() for line in test_input.strip().split('\n') if line.strip()]
 
     def mock_input():
         if not test_input_lines:
@@ -212,11 +200,7 @@ def compare_with_expected_output(generated_output, expected_output):
     print("Comparing outputs...")
     # Check if either output is None
     if generated_output is None:
-        print("Error: generated_output is None")
         return 0, ["Generated output is None"]
-    if expected_output is None:
-        print("Error: expected_output is None")
-        return 0, ["Expected output is None"]
 
     generated_output_lines = generated_output.strip().splitlines()
     expected_output_lines = expected_output.strip().splitlines()
@@ -238,10 +222,8 @@ def compare_with_expected_output(generated_output, expected_output):
 def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_output):
     # Check if inputs are valid
     if test_input is None:
-        print("Error: test_input is None in evaluate_generated_code_on_test_cases")
         return 0, "Error: test_input is None", None, []
     if test_output is None:
-        print("Error: test_output is None in evaluate_generated_code_on_test_cases")
         return 0, "Error: test_output is None", None, []
 
     # Run the code and get the output
@@ -249,17 +231,21 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
     if generated_output is None or generated_output.strip() == "":
-        print("Error: generated_output is empty or None")
-        return 0, error, generated_output, []
+        return 0, error or "Error: generated_output is empty", generated_output, []
 
     # If there's an error, return it
     if error:
-        print(f"Error during code execution: {error}")
         return 0, error, generated_output, []
 
     # Compare the generated output with expected output
     score, failed_cases = compare_with_expected_output(generated_output, test_output)
+    
+    if failed_cases:
+        error_msg = f"Test cases failed: {failed_cases}"
+        return score, error_msg, generated_output, failed_cases
+
     return score, error, generated_output, failed_cases
+
 
 
 
@@ -355,9 +341,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
             )
-            if not generated_output:
-                print("Error in 'evaluate_generated_code_on_test_cases'. Returned None.")
-                break
             # Log the output and error for debugging purposes
             if error:
                 print(f"Error during code execution: {error}")
