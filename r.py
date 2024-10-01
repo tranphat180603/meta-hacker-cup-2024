@@ -244,7 +244,11 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 def understanding_problem(problem_description): 
     try:
         # print("Step 1: Understanding problem:")
-        return model_response(get_problem_understanding_template(problem_description))
+        return model_response(get_problem_understanding_template(problem_description), system_prompt = """
+        You are a specialized assistant whose task is to provide a clear and structured JSON representation of a programming problem's details. 
+        You will be given a problem description and must produce a JSON output summarizing the problem's goal, constraints, test cases, important ideas, and difficulty assessment. 
+        Follow the exact JSON structure provided without adding any extra text, explanations, or comments.
+        """)
     except Exception as e:
         print(f"Error in understanding_problem: {str(e)}")
         return None
@@ -252,7 +256,11 @@ def understanding_problem(problem_description):
 def analyze_test_cases(problem_description):
     try:
         # print("Step 2: Analyzing test cases: ")
-        return model_response(analyze_original_test_cases_template(problem_description))
+        return model_response(analyze_original_test_cases_template(problem_description), system_prompt = """
+        You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
+        Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
+        Produce only valid JSON based on the provided structure without extra text or explanations.
+        """)
     except Exception as e:
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
@@ -260,7 +268,10 @@ def analyze_test_cases(problem_description):
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
         # print("Step 3: Generate more sample test cases")
-        return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis))
+        return model_response(generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
+        You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
+        Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
+        """)
     except Exception as e:
         print(f"Error in self_generate_test_cases: {str(e)}")
         return None
@@ -268,7 +279,11 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
         # print("Step 4: Generate solutions")
-        return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions))
+        return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
+        You are tasked with generating solution ideas based on the provided problem description and test case analysis. 
+        Your job is to provide multiple solution approaches that can pass all test cases, including original and AI-generated ones. 
+        Ensure the output follows the exact JSON structure provided, without adding any extra text or explanations.
+        """)
     except Exception as e:
         print(f"Error in generate_solution_ideas: {str(e)}")
         return None
@@ -276,7 +291,11 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
     try:
         # print("Step 5: Evaluating solutions: ")
-        return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty))
+        return model_response(evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
+        You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
+        Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
+        Ensure that the output is provided strictly in the JSON format specified, without adding any extra text or explanations.
+        """)
     except Exception as e:
         print(f"Error in evaluate_solutions_f: {str(e)}")
         return None
@@ -284,14 +303,22 @@ def evaluate_solutions_f(solution_ideas, problem_understanding, test_case_analys
 def generate_python_code(selected_solution, test_case_analysis):
     try:
         # print("Step 6: First python code: ")
-        return model_response(get_code_generation_template(selected_solution, test_case_analysis))
+        return model_response(get_code_generation_template(selected_solution, test_case_analysis), system_prompt = """
+        You are tasked with generating Python code for the selected solution that passed all test cases. 
+        Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
+        Ensure the output is strictly in the specified JSON format without any extra text or explanations.
+        """)
     except Exception as e:
         print(f"Error in generate_python_code: {str(e)}")
         return None
 
 def request_code_improvement(generated_code, error_message):
     try:
-        return model_response(iterate_public_tests(generated_code, error_message))
+        return model_response(iterate_public_tests(generated_code, error_message), system_prompt = """
+        You are tasked with modifying and improving Python code to fix a specific error based on the provided error message. 
+        Focus on addressing the issue at the indicated line and provide the improved code. 
+        Ensure the output is in valid JSON format without any additional text, explanations, or comments.
+        """)
     except Exception as e:
         print(f"Error in request_code_improvement: {str(e)}")
         return None
@@ -353,9 +380,6 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
             new_code = new_code['solution_code']['code'] #CHAC CHAN SE FIX DUOC LOI SAI STRUCTURE
 
-            if not new_code:
-                print("Error in 'request_code_improvement'. Returned None.")
-                break
             generated_code = new_code
             attempts += 1
 
@@ -365,7 +389,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             return best_code, best_score
 
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"ERROR OCCURED: {str(e)}")
         return None
 
 
@@ -393,24 +417,16 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                     max_num_retry=max_num_retry
                 )
 
-                if generated_code:
-                    score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                        generated_code, input_data, expected_output
-                    )
-
-                    if score > 0:
-                        print(f"Problem: {problem['name']} passed with score {score}% on GPU {gpu_id}!")
-                    else:
-                        print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
+                if best_score > 0:
+                    print(f"Problem: {problem['name']} passed with score {best_score}% on GPU {gpu_id}!")
                 else:
-                    print(f"Could not generate valid code for problem {problem['name']} on GPU {gpu_id}.")
-                
+                    print(f"Problem: {problem['name']} failed with errors on GPU {gpu_id}.")
                 # Write the best score to the file
                 file.write(f"Problem: {problem['name']}, Score: {best_score}%\n")
 
-            except Exception:
-                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {error} after {code_iterations}")
-                file.write(f"Problem: {problem['name']}, Error: {str(error)}\n")
+            except Exception as e:
+                print(f"Error processing problem {problem['name']} on GPU {gpu_id}: {e} after {code_iterations}")
+                file.write(f"Problem: {problem['name']}, Error: {str(e)}\n")
     print("FINISHED!!!")
 
 
@@ -466,4 +482,4 @@ if __name__ == "__main__":
 
 
 
-# python r.py --code_iterations 100 --max_num_retry 10 --num_workers 4
+# python r.py --code_iterations 30 --max_num_retry 10 --num_workers 4
