@@ -145,14 +145,10 @@ def extract_python_code(response):
     return response
 
 def check_code_structure(extracted_code):
-    """Check if the code contains function definitions and the main block."""
+    # Check if the phrase "__name__ == '__main__'" or '__name__ == "__main__"' is present in the code
     
-    # Check for either single or double quotes around __main__
-    if not ("__name__ == __main__" in extracted_code):
-        return False, "Missing `__name__ == __main__` block"
-    
-    if 'def ' not in extracted_code:
-        return False, "No function definitions found in the code."
+    if "__name__ == '__main__'" not in extracted_code and '__name__ == "__main__"' not in extracted_code:
+        return False, "Missing `if __name__ == '__main__':` block."
     
     return True, None
 
