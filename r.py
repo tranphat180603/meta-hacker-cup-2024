@@ -143,7 +143,6 @@ def retry(func, max_attempts, *args, **kwargs):
 
 def check_code_structure(extracted_code):
     # Check if the phrase "__name__ == '__main__'" or '__name__ == "__main__"' is present in the code
-    print(f"Extracted code: {extracted_code}")
     if "__name__ == '__main__'" not in extracted_code:
         return False, "Missing `if __name__ == '__main__':` block."
     
@@ -217,18 +216,12 @@ def compare_with_expected_output(generated_output, expected_output):
 
 # Evaluate generated code on test cases
 def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_output):
-    # Check if inputs are valid
-    if test_input is None:
-        return 0, "Error: test_input is None", None, []
-    if test_output is None:
-        return 0, "Error: test_output is None", None, []
-
     # Run the code and get the output
     print("Running the extracted code...")
     generated_output, error = run_extracted_code(extracted_code, test_input)
     
     if generated_output is None or generated_output.strip() == "":
-        return 0, error or "Error: generated_output is empty", generated_output, []
+        return 0, error or "Error: The code ran without any problem. There's no error in parsing the input. But the output blank. Check the whole code again.", generated_output, []
     
     # If there's an error, return it
     if error:
