@@ -119,6 +119,7 @@ def response_json(response_string):
         parsed_json = json.loads(cleaned_response)
         return parsed_json
     except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
         return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -154,6 +155,10 @@ def check_code_structure(extracted_code):
     return True, None
 
 def run_extracted_code(extracted_code, test_input):
+    # Check if test_input is None
+    if test_input is None:
+        return None, "Error: test_input is None"
+    
     # Check if the structure of the code is valid
     is_valid, error_message = check_code_structure(extracted_code)
     if not is_valid:
