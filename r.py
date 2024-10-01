@@ -140,9 +140,6 @@ def retry(func, max_attempts, *args, **kwargs):
     
     return None  # Return None to signal failure
 
-### Helper functions to iterate the code solutions
-def extract_python_code(response):
-    return response
 
 def check_code_structure(extracted_code):
     # Check if the phrase "__name__ == '__main__'" or '__name__ == "__main__"' is present in the code
@@ -154,9 +151,9 @@ def check_code_structure(extracted_code):
 
 def run_extracted_code(extracted_code, test_input):
     # Check if the structure of the code is valid
-    # is_valid, error_message = check_code_structure(extracted_code)
-    # if not is_valid:
-    #     return None, f"Code structure error: {error_message}"
+    is_valid, error_message = check_code_structure(extracted_code)
+    if not is_valid:
+        return None, f"Code structure error: {error_message}"
     
     output = io.StringIO()
     error = None
@@ -188,7 +185,9 @@ def run_extracted_code(extracted_code, test_input):
             code_lines = extracted_code.split('\n')
             error_line = code_lines[line_no - 1] if line_no <= len(code_lines) else "Unknown"
             
-            error = f"Error occurred on line {line_no}: {exc_type.__name__}: {str(exc_value)}\n"
+            error = f"Error occurred on line {line_no}:\n"
+            error += f"Code: {error_line.strip()}\n"
+            error += f"Exception: {exc_type.__name__}: {str(exc_value)}\n"
             print(error)
 
     return output.getvalue(), error
@@ -326,7 +325,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         # Step 6: Generate Python code
         code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
 
-        generated_code = extract_python_code(code_solution['solution_code']['code'])
+        generated_code = code_solution['solution_code']['code']
         attempts = 0
         best_score = 0
         best_code = generated_code
@@ -357,10 +356,10 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             # Improvement feedback is empty, continue to the next iteration
             improvement_feedback = error if error else failed_cases
 
-            # print(f"Improvement feedback: {improvement_feedback}")
-
             # Retry the code improvement
             new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
+            new_code = new_code['solution_code']['code'] #CHAC CHAN SE FIX DUOC LOI SAI STRUCTURE
+
             if not new_code:
                 print("Error in 'request_code_improvement'. Returned None.")
                 break
