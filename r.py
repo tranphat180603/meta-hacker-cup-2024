@@ -251,7 +251,7 @@ def generate_solution_ideas(problem_description,test_case_analysis , num_solutio
 
 def evaluate_solutions_f(solution_ideas, problem_understanding, problem_difficulty):
     print("Step 5: Evaluating solutions: ")
-    return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, problem_difficulty))
+    return model_response(evaluate_solutions_template(solution_ideas,problem_understanding, test_case_analysis,problem_difficulty))
 
 def generate_python_code(selected_solution, test_case_analysis):
     print("Step 6: First python code: ")
@@ -284,7 +284,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             return None
 
         # Step 5: Evaluate solutions
-        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(understand)['understanding']['difficulty_assessment'])
+        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(understand)['understanding']['difficulty_assessment'])
         if not evaluate_solutions:
             return None
 
@@ -307,7 +307,9 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
             )
-
+            if not generated_output:
+                print("Error in 'evaluate_generated_code_on_test_cases'. Returned None.")
+                break
             # Log the output and error for debugging purposes
             if error:
                 print(f"Error during code execution: {error}")

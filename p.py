@@ -131,7 +131,7 @@ def get_solution_ideas_template(problem_description, test_case_analysis, num_sol
     }}
     """
 
-def evaluate_solutions_template(solution_ideas, problem_understanding, problem_difficulty):
+def evaluate_solutions_template(solution_ideas, problem_understanding, test_case_analysis, problem_difficulty):
     return f"""
     Task: You are given multiple solutions based on the analysis of the solution ideas: '{solution_ideas}'. Your goal is to choose the best solution based on the description below.
 
@@ -151,8 +151,8 @@ def evaluate_solutions_template(solution_ideas, problem_understanding, problem_d
                 "goal_alignment": "Explain how the solution addresses the main goal of the problem: '{problem_understanding.get('understanding', {}).get('goal', 'No goal provided')}'.",
                 "constraint_handling": "Evaluate how well the solution meets the problem's constraints: '{problem_understanding.get('understanding', {}).get('constraints', 'No constraints provided')}'.",
                 "input_output_handling": {{
-                    "input_format": "Evaluate whether the solution correctly handles the input format: '{problem_understanding.get('understanding', {}).get('test_cases', {}).get('input_format', 'No input format provided')}'.",
-                    "output_format": "Evaluate whether the solution produces the correct output format: '{problem_understanding.get('understanding', {}).get('test_cases', {}).get('output_format', 'No output format provided')}'."
+                    "input_format": "Evaluate whether the solution correctly handles the input format: '{test_case_analysis}.",
+                    "output_format": "Evaluate whether the solution produces the correct output format: '{test_case_analysis}'."
                 }},
                 "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: '{problem_understanding.get('understanding', {}).get('important_ideas', 'No key ideas provided')}'.",
                 "edge_case_handling": "Evaluate how the solution handles edge cases (if applicable).",
