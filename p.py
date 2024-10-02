@@ -86,7 +86,9 @@ def analyze_original_test_cases_template(problem_description):
       ],
       "test_case_reflection": {{
         "key_observations": [
-          "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem."
+          "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem.
+          For example: after analysing the test case, it appears that both single and double cheese burgers have 2 buns.
+          "
         ],
         "variable_roles": {{
           "variable_name": "Explain the role or significance of each variable in the problem, based on how it's used across test cases."

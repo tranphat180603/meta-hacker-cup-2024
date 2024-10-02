@@ -34,8 +34,8 @@ def parse_args():
     return parser.parse_args()
 
 # Load the model and tokenizer
-model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.2, do_sample = True, device_map="auto")
+model_name = "Qwen/Qwen2.5-14B-Instruct"
+model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.3, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 print(f"USING MODEL: {model_name}")
 
@@ -417,11 +417,9 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                 generated_code, best_score = run_full_process(problem_description, input_data, expected_output, code_iterations, max_num_retry)
                 if best_score > 0:
                     print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} passed with score {best_score}%")
-                else:
-                    print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} failed.")
                 file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
             except Exception as e:
-                print(f"Error processing problem {index}/{total_problems} on GPU {gpu_id}: {str(e)}")
+                print(f"Cannot find solution for problem {index}/{total_problems} on GPU {gpu_id} after {code_iterations} iterations")
                 file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
     print(f"Finished processing on GPU {gpu_id}!")
 
