@@ -138,14 +138,13 @@ def retry(func, max_attempts, *args, **kwargs):
     result = None
 
     while attempts < max_attempts:
+        print(f"Attempt: {attempts + 1}")
         try:
             raw_response = func(*args, **kwargs)
             parsed_response = response_json(raw_response)
             
             if parsed_response is not None and isinstance(parsed_response, dict):
                 return parsed_response
-            else:
-                print(f"Error with JSON format after {max_attempts}")
         except Exception as e:
             print("Error at function retry")
 
@@ -256,7 +255,7 @@ def understanding_problem(problem_description):
         print("Step 1: Understanding problem:")
         return model_response(model, tokenizer ,get_problem_understanding_template(problem_description), system_prompt = """
         You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
-        Provide a clear, logical JSON representation of the problem's key elements, including inputs, outputs, constraints, and any abstract concepts. 
+        Produce only valid JSON based on the provided structure without extra text or explanations. 
         Maintain real-world logical consistency while interpreting the problem, and note any ambiguities or inconsistencies in the description. 
         (For example: a pair of chopsticks can't be 1 chopstick, a dog can't have 3 legs)
         """, temperature = 0.3)
@@ -365,24 +364,68 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
     try:
         # Step 1: Understand the problem
         understand = retry(understanding_problem, max_num_retry, problem_description)
+        if not understand:
+            print("Failed parsing JSON for problem understanding.")
+            return
 
         # Step 2: Analyze test cases
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
+        if not analysis:
+            print("Failed parsing JSON for test case analysis.")
+            return
 
         # Step 3: Refine understanding
-        refine_understanding = retry(get_refine_understanding, max_num_retry, response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'])
+        refine_understanding = retry(
+            get_refine_understanding, max_num_retry, 
+            understand['understanding'], 
+            analysis['original_test_case_analysis']
+        )
+        if not refine_understanding:
+            print("Failed parsing JSON for refining understanding.")
+            return
 
         # Step 4: Generate AI test cases
-        ai_test = retry(self_generate_test_cases, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'])
+        ai_test = retry(
+            self_generate_test_cases, max_num_retry, 
+            refine_understanding['refined_problem_understanding'], 
+            analysis['original_test_case_analysis']
+        )
+        if not ai_test:
+            print("Failed parsing JSON for AI test case generation.")
+            return
 
         # Step 5: Generate solution ideas
-        solutions = retry(generate_solution_ideas, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'], num_solutions=5)
+        solutions = retry(
+            generate_solution_ideas, max_num_retry, 
+            refine_understanding['refined_problem_understanding'], 
+            analysis['original_test_case_analysis'], 
+            num_solutions=5
+        )
+        if not solutions:
+            print("Failed parsing JSON for solution generation.")
+            return
 
         # Step 6: Evaluate solutions
-        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'], response_json(refine_understanding)['refined_problem_understanding']['difficulty_assessment_update'])
+        evaluate_solutions = retry(
+            evaluate_solutions_f, max_num_retry, 
+            solutions['solutions'], 
+            refine_understanding['refined_problem_understanding'], 
+            analysis['original_test_case_analysis'], 
+            refine_understanding['refined_problem_understanding']['difficulty_assessment_update']
+        )
+        if not evaluate_solutions:
+            print("Failed parsing JSON for solution evaluation.")
+            return
 
         # Step 7: Generate Python code
-        code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
+        code_solution = retry(
+            generate_python_code, max_num_retry, 
+            evaluate_solutions['selected_solution'], 
+            analysis['original_test_case_analysis']
+        )
+        if not code_solution:
+            print("Failed parsing JSON for Python code generation.")
+            return
 
         generated_code = code_solution['solution_code']['code']
         attempts = 0
