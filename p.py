@@ -306,10 +306,10 @@ def iterate_failed_test_cases(generated_code, failed_tests):
 
     '{generated_code}',
 
-    The input/output and can not be wrong. If test cases failed, it is due to the code. 
-    It seems the current approach is incorrect, think of another approach to implement the solution that improves the pass rate. The new solution should address the core logic of the problem.
-    The new approach should be fundamentally different from the current code.
-    
+    The input/output and can not be wrong. If test cases failed, it is due to the wrong approach in the code. 
+    It must be that the current approach is incorrect, think of another approach to implement the solution that improves the pass rate. The new solution should address the core logic of the problem.
+    The new approach must be fundamentally different from the current code.
+
     Guidelines:
     1. The new solution should be robust and general, capable of solving all test cases including edge cases.
     2. Create a new approach to the problem. The fixed code should not be just a minor adjustment but a creative rethinking of the solution.

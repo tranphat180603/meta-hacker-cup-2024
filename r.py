@@ -354,7 +354,7 @@ def request_code_improvement_dtfc(generated_code, failed_tests):  # Due to faile
         Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
         Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
         Return only the new, complete solution in valid JSON format, without explanations or comments.
-        """, temperature=0.5)
+        """, temperature=0.7)
     except Exception as e:
         print(f"Error in request_code_improvement_dtfc: {str(e)}")
         return None
