@@ -31,19 +31,14 @@ def parse_args():
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") 
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
-    # parser.add_argument("--verbose", action="store_true", help="Increase output verbosity")
     return parser.parse_args()
-
-# Helper function to log messages if verbose is enabled
-def log_verbose(message, verbose=False):
-    if verbose:
-        print(message)
 
 # Load the model and tokenizer
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
 model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.2, do_sample = True, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 print(f"USING MODEL: {model_name}")
+
 # Apply chat template for all messages
 def apply_chat_template(messages):
     return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -126,7 +121,7 @@ def response_json(response_string):
         parsed_json = json.loads(cleaned_response)
         return parsed_json
     except json.JSONDecodeError as e:
-        # print(f"Error decoding JSON: {e}")
+        print(f"Error decoding JSON")
         return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -194,7 +189,6 @@ def run_extracted_code(extracted_code, test_input):
             error = f"Error occurred on line {line_no}: "
             error += f"{error_line.strip()}\n"
             error += f"Exception: {exc_type.__name__}: {str(exc_value)}\n"
-            print(error)
 
     return output.getvalue(), error
 
