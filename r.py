@@ -78,7 +78,7 @@ def model_response(model, tokenizer, user_content, temperature=0.3, max_new_toke
     ]
     response = generate_response(model, tokenizer, messages, temperature=temperature, max_new_tokens=max_new_tokens)
     formatted_response = {"role": "assistant", "content": response}
-    print(f"Generated Response: {formatted_response['content']}")
+    # print(f"Generated Response: {formatted_response['content']}")
     return formatted_response["content"]
 
 
@@ -130,7 +130,7 @@ def response_json(response_string):
         parsed_json = json.loads(cleaned_response)
         return parsed_json
     except json.JSONDecodeError as e:
-        print(f"Error decoding JSON")
+        # print(f"Error decoding JSON")
         return None  # Return None if parsing fails
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -138,7 +138,7 @@ def retry(func, max_attempts, *args, **kwargs):
     result = None
 
     while attempts < max_attempts:
-        print(f"Attempt: {attempts + 1}")
+        # print(f"Attempt: {attempts + 1}")
         try:
             raw_response = func(*args, **kwargs)
             parsed_response = response_json(raw_response)
@@ -252,7 +252,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        print("Step 1: Understanding problem:")
+        # print("Step 1: Understanding problem:")
         return model_response(model, tokenizer ,get_problem_understanding_template(problem_description), system_prompt = """
         You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
         Produce only valid JSON based on the provided structure without extra text or explanations. 
@@ -265,7 +265,7 @@ def understanding_problem(problem_description):
 
 def analyze_test_cases(problem_description):
     try:
-        print("Step 2: Analyzing test cases: ")
+        # print("Step 2: Analyzing test cases: ")
         return model_response(model, tokenizer ,analyze_original_test_cases_template(problem_description), system_prompt = """
         You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
         Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
@@ -277,7 +277,7 @@ def analyze_test_cases(problem_description):
 
 def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
-        print("Step 3: Refine problem understandings: ")
+        # print("Step 3: Refine problem understandings: ")
         return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
         Refine the problem understanding by integrating insights from test case analysis. 
         Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
@@ -289,7 +289,7 @@ def get_refine_understanding(problem_understanding, test_case_analysis):
 
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        print("Step 4: Generate more sample test cases")
+        # print("Step 4: Generate more sample test cases")
         return model_response(model, tokenizer ,generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
         You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
         Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
@@ -300,7 +300,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        print("Step 5: Generate solutions")
+        # print("Step 5: Generate solutions")
         return model_response(model, tokenizer ,get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
         As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
         Think outside the box while ensuring all solutions can pass the provided test cases.
@@ -312,7 +312,7 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 
 def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     try:
-        print("Step 6: Evaluating solutions: ")
+        # print("Step 6: Evaluating solutions: ")
         return model_response(model, tokenizer ,evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt = """
         Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
         Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
@@ -324,7 +324,7 @@ def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case
 
 def generate_python_code(selected_solution, test_case_analysis):
     try:
-        print("Step 7: First python code: ")
+        # print("Step 7: First python code: ")
         return model_response(model, tokenizer ,get_code_generation_template(selected_solution, test_case_analysis), system_prompt = """
         You are tasked with generating Python code for the selected solution that passed all test cases. 
         Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
@@ -336,7 +336,7 @@ def generate_python_code(selected_solution, test_case_analysis):
 
 def request_code_improvement_dte(generated_code, error_message):  # Due to error (execution/runtime issue)
     try:
-        print("Step 8: Iterating on execution error: ")
+        # print("Step 8: Iterating on execution error: ")
         return model_response(model, tokenizer ,iterate_execution_error(generated_code, error_message), system_prompt="""
         You are tasked with modifying and improving Python code to fix a specific execution or runtime error based on the provided error message. 
         Focus on addressing the issue at the indicated line and provide the improved code. 
@@ -349,7 +349,7 @@ def request_code_improvement_dte(generated_code, error_message):  # Due to error
 
 def request_code_improvement_dtfc(generated_code, failed_tests):  # Due to failed cases (logic/approach issue)
     try:
-        print("Step 8: Iterating on failed test cases: ")
+        # print("Step 8: Iterating on failed test cases: ")
         return model_response(model, tokenizer ,iterate_failed_test_cases(generated_code, failed_tests), system_prompt="""
         Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
         Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
@@ -452,10 +452,10 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
             if error:  # Handle execution/runtime errors
                 new_code = retry(request_code_improvement_dte, max_num_retry, generated_code, error)
-                print(error)
+                # print(error)
             elif failed_cases:  # Handle failed test cases
                 new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, failed_cases)
-                print(failed_cases)
+                # print(failed_cases)
 
             new_code = new_code['solution_code']['code'] if new_code else generated_code
             generated_code = new_code
