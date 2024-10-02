@@ -234,8 +234,6 @@ def evaluate_solutions_template(solution_ideas, refine_problem_understanding, te
     """
 
 
-
-
 def get_code_generation_template(selected_solution, test_case_analysis):
     return f"""
 You are tasked with generating Python code for the solution: 
