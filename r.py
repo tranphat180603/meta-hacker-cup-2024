@@ -144,6 +144,8 @@ def retry(func, max_attempts, *args, **kwargs):
             
             if parsed_response is not None and isinstance(parsed_response, dict):
                 return parsed_response
+            else:
+                print(f"Error with JSON format after {max_attempts}")
         except Exception as e:
             print("Error at function retry")
 
