@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") 
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
-    parser.add_argument("--verbose", action="store_true", help="Increase output verbosity")
+    # parser.add_argument("--verbose", action="store_true", help="Increase output verbosity")
     return parser.parse_args()
 
 # Helper function to log messages if verbose is enabled
@@ -65,14 +65,14 @@ def generate_response(messages, max_new_tokens=2048):
     return response
 
 # Helper to parse response at each step
-def model_response(user_content, verbose=False, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
+def model_response(user_content, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_content}
     ]
     response = generate_response(messages)
     formatted_response = {"role": "assistant", "content": response}
-    log_verbose(f"Generated Response: {formatted_response['content']}", verbose)
+    print((f"Generated Response: {formatted_response['content']}"))
     return formatted_response["content"]
 
 # Load dataset
