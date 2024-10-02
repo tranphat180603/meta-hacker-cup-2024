@@ -37,10 +37,8 @@ def parse_args():
 
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, temperature=0.3):
-    print(f"Loading model: {model_name}")
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    print(f"USING MODEL: {model_name} with temperature {temperature}")
     return model, tokenizer
 
 # Apply chat template for all messages
@@ -66,7 +64,7 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
 
 #Load model
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model, tokenizer = load_model_and_tokenizer(model_name, temperature=0.5)
+model, tokenizer = load_model_and_tokenizer(model_name, temperature=0.3)
 print(f"USING MODEL: {model_name}")
 
 # Load dataset
@@ -455,31 +453,53 @@ def main():
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
     
-    mp.set_start_method('spawn', force=True)
+    # Set start method only once
+    try:
+        mp.set_start_method('spawn', force=True)
+    except RuntimeError as e:
+        print(f"Multiprocessing start method 'spawn' already set: {str(e)}")
 
     # Extract problem cases
     problem_cases = extract_problem_cases_with_io(ds)
 
+    # Debugging: Print out the total number of problems
+    print(f"Total problem cases loaded: {len(problem_cases)}")
+
     # Find a specific problem if given
     if args.problem_name:
+        print(f"Finding specific problem: {args.problem_name}")
         problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
         num_workers = 1
         if not problem_cases:
             print(f"No problem found with the name '{args.problem_name}'")
             return
         else:
-            problem_batches = problem_cases
+            problem_batches = [problem_cases]  # Wrap it in a list to make it iterable
     else:
         # Split problem cases into 4 batches for 4 GPUs
         num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
         batch_size = max(1, len(problem_cases) // num_workers)
         problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
+        # Ensure no empty batches
+        problem_batches = [batch for batch in problem_batches if batch]  # Remove empty batches
+        num_workers = len(problem_batches)  # Update the number of workers to match non-empty batches
+
+    # Debugging: Print out how the problem cases are divided among GPUs
+    for i, batch in enumerate(problem_batches):
+        print(f"GPU {i} assigned {len(batch)} problems.")
+
     # Spawn workers (one for each GPU)
     processes = []
     for i in range(num_workers):
         gpu_id = i  # Each worker gets a separate GPU
         problem_batch = problem_batches[i]
+
+        if not problem_batch:
+            print(f"Skipping GPU {gpu_id} - no problems assigned.")
+            continue
+
+        print(f"Spawning process for GPU {gpu_id} with {len(problem_batch)} problems.")
         p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
         processes.append(p)
         p.start()
@@ -490,8 +510,6 @@ def main():
 
     print("All GPU processing finished.")
 
-if __name__ == "__main__":
-    main()
 
 
 
