@@ -21,8 +21,9 @@ from p import (
     get_solution_ideas_template,
     evaluate_solutions_template,
     get_code_generation_template,
-    iterate_public_tests,
-    refine_problem_understanding_template
+    iterate_execution_error,
+    refine_problem_understanding_template,
+    iterate_failed_test_cases
 )
 
 def parse_args():
@@ -33,24 +34,28 @@ def parse_args():
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
+
 # Load the model and tokenizer
-model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", temperature=0.3, do_sample = True, device_map="auto")
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-print(f"USING MODEL: {model_name}")
+def load_model_and_tokenizer(model_name, temperature=0.3):
+    print(f"Loading model: {model_name}")
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    print(f"USING MODEL: {model_name} with temperature {temperature}")
+    return model, tokenizer
 
 # Apply chat template for all messages
-def apply_chat_template(messages):
+def apply_chat_template(tokenizer, messages):
     return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 # Function to interact with the model and return the latest response using chat template
-def generate_response(messages, max_new_tokens=2048):
-    full_prompt = apply_chat_template(messages)
+def generate_response(model, tokenizer, messages, temperature=0.3, max_new_tokens=2048):
+    full_prompt = apply_chat_template(tokenizer, messages)
     
     model_inputs  = tokenizer(full_prompt, return_tensors="pt").to(model.device)
     generated_ids = model.generate(
         **model_inputs,
-        max_new_tokens=max_new_tokens
+        max_new_tokens=max_new_tokens,
+        temperature=temperature  # Use custom temperature
     )
     generated_ids = [
         output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -59,19 +64,25 @@ def generate_response(messages, max_new_tokens=2048):
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
+#Load model
+model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+model, tokenizer = load_model_and_tokenizer(model_name, temperature=0.5)
+print(f"USING MODEL: {model_name}")
+
+# Load dataset
+ds = load_dataset("hackercupai/hackercup")
+
 # Helper to parse response at each step
-def model_response(user_content, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
+def model_response(model, tokenizer, user_content, temperature=0.3, max_new_tokens=2048, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_content}
     ]
-    response = generate_response(messages)
+    response = generate_response(model, tokenizer, messages, temperature=temperature, max_new_tokens=max_new_tokens)
     formatted_response = {"role": "assistant", "content": response}
-    print((f"Generated Response: {formatted_response['content']}"))
+    print(f"Generated Response: {formatted_response['content']}")
     return formatted_response["content"]
 
-# Load dataset
-ds = load_dataset("hackercupai/hackercup")
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
 def extract_problem_cases_with_io(dataset):
@@ -244,10 +255,11 @@ def understanding_problem(problem_description):
     try:
         print("Step 1: Understanding problem:")
         return model_response(get_problem_understanding_template(problem_description), system_prompt = """
-        You are a specialized assistant whose task is to provide a clear and structured JSON representation of a programming problem's details. 
-        You will be given a problem description and must produce a JSON output summarizing the problem's goal, constraints, test cases, important ideas, and difficulty assessment. 
-        Follow the exact JSON structure provided without adding any extra text, explanations, or comments.
-        """)
+        You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
+        Provide a clear, logical JSON representation of the problem's key elements, including inputs, outputs, constraints, and any abstract concepts. 
+        Maintain real-world logical consistency while interpreting the problem, and note any ambiguities or inconsistencies in the description. 
+        (For example: a pair of chopsticks can't be 1 chopstick, a dog can't have 3 legs)
+        """, temperature = 0.3)
     except Exception as e:
         print(f"Error in understanding_problem: {str(e)}")
         return None
@@ -268,10 +280,10 @@ def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
         print("Step 3: Refine problem understandings: ")
         return model_response(refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
-        You are tasked with refining the problem understanding based on new insights from test case analysis. 
-        Focus on updating constraints, identifying edge cases, and correcting any discrepancies between the original understanding and test cases. 
-        Ensure the refined understanding is presented in valid JSON format without any additional text or explanations.
-        """)
+        Refine the problem understanding by integrating insights from test case analysis. 
+        Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
+        Provide the refined understanding in valid JSON format only.
+        """, temperature = 0.2)
     except Exception as e:
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
@@ -291,10 +303,10 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
     try:
         print("Step 5: Generate solutions")
         return model_response(get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
-        You are tasked with generating solution ideas based on the provided problem description and test case analysis. 
-        Your job is to provide multiple solution approaches that can pass all test cases, including original and AI-generated ones. 
-        Ensure the output follows the exact JSON structure provided, without adding any extra text or explanations.
-        """)
+        As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
+        Think outside the box while ensuring all solutions can pass the provided test cases.
+        Aim for a mix of conventional and novel approaches, considering efficiency, scalability, and unique algorithmic techniques.
+        """, temperature = 0.8)
     except Exception as e:
         print(f"Error in generate_solution_ideas: {str(e)}")
         return None
@@ -302,11 +314,11 @@ def generate_solution_ideas(problem_description, test_case_analysis, num_solutio
 def evaluate_solutions_f(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
     try:
         print("Step 6: Evaluating solutions: ")
-        return model_response(evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt ="""
-        You are tasked with evaluating multiple solution ideas based on problem understanding, test case analysis, and problem difficulty. 
-        Your job is to select the best solution that balances simplicity, robustness, and efficiency. 
-        Ensure that the output is provided strictly in the JSON format specified, without adding any extra text or explanations.
-        """)
+        return model_response(evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), system_prompt = """
+        Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
+        Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
+        Provide a concise, objective assessment in the specified JSON format only.
+        """, temperature = 0.4)
     except Exception as e:
         print(f"Error in evaluate_solutions_f: {str(e)}")
         return None
@@ -318,23 +330,35 @@ def generate_python_code(selected_solution, test_case_analysis):
         You are tasked with generating Python code for the selected solution that passed all test cases. 
         Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
         Ensure the output is strictly in the specified JSON format without any extra text or explanations.
-        """)
+        """, temperature=0.2)
     except Exception as e:
         print(f"Error in generate_python_code: {str(e)}")
         return None
 
-def request_code_improvement(generated_code, error_message):
+def request_code_improvement_dte(generated_code, error_message):  # Due to error (execution/runtime issue)
     try:
-        print("Step 8: Start iterating: ")
-        return model_response(iterate_public_tests(generated_code, error_message), system_prompt = """
-        You are tasked with modifying and improving Python code to fix a specific error based on the provided error message. 
+        print("Step 8: Iterating on execution error: ")
+        return model_response(iterate_execution_error(generated_code, error_message), system_prompt="""
+        You are tasked with modifying and improving Python code to fix a specific execution or runtime error based on the provided error message. 
         Focus on addressing the issue at the indicated line and provide the improved code. 
         Ensure the output is in valid JSON format without any additional text, explanations, or comments.
         """)
     except Exception as e:
-        print(f"Error in request_code_improvement: {str(e)}")
+        print(f"Error in request_code_improvement_dte: {str(e)}")
         return None
 
+
+def request_code_improvement_dtfc(generated_code, failed_tests):  # Due to failed cases (logic/approach issue)
+    try:
+        print("Step 8: Iterating on failed test cases: ")
+        return model_response(iterate_failed_test_cases(generated_code, failed_tests), system_prompt="""
+        Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
+        Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
+        Return only the new, complete solution in valid JSON format, without explanations or comments.
+        """, temperature=0.5)
+    except Exception as e:
+        print(f"Error in request_code_improvement_dtfc: {str(e)}")
+        return None
 
 # Main function to run the process
 def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
@@ -345,19 +369,19 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         # Step 2: Analyze test cases
         analysis = retry(analyze_test_cases, max_num_retry, problem_description)
 
-        #Step 3: Refine understanding
+        # Step 3: Refine understanding
         refine_understanding = retry(get_refine_understanding, max_num_retry, response_json(understand)['understanding'], response_json(analysis)['original_test_case_analysis'])
 
-        # Step 3: Generate AI test cases
+        # Step 4: Generate AI test cases
         ai_test = retry(self_generate_test_cases, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'])
 
-        # Step 4: Generate solution ideas
+        # Step 5: Generate solution ideas
         solutions = retry(generate_solution_ideas, max_num_retry, response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'], num_solutions=5)
 
-        # Step 5: Evaluate solutions
-        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'] ,response_json(refine_understanding)['refined_problem_understanding']['difficulty_assessment_update'])
+        # Step 6: Evaluate solutions
+        evaluate_solutions = retry(evaluate_solutions_f, max_num_retry, response_json(solutions)['solutions'], response_json(refine_understanding)['refined_problem_understanding'], response_json(analysis)['original_test_case_analysis'], response_json(refine_understanding)['refined_problem_understanding']['difficulty_assessment_update'])
 
-        # Step 6: Generate Python code
+        # Step 7: Generate Python code
         code_solution = retry(generate_python_code, max_num_retry, response_json(evaluate_solutions)['selected_solution'], response_json(analysis)['original_test_case_analysis'])
 
         generated_code = code_solution['solution_code']['code']
@@ -365,9 +389,9 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
         best_score = 0
         best_code = generated_code
 
-        # Start the code iteration loop
+        # Step 8: Start the code iteration loop
         while attempts < code_iterations:
-            print(f"Code iterations. Attempt #{attempts+1}/{code_iterations}")
+            print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
             # Run the generated code
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
@@ -383,14 +407,14 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
                 print(f"Perfect score achieved: {best_score}%")
                 return best_code, best_score
 
-            # Improvement feedback is empty, continue to the next iteration
-            improvement_feedback = error if error else failed_cases
-            # print(f"Code feedback: {improvement_feedback}")
+            if error:  # Handle execution/runtime errors
+                new_code = retry(request_code_improvement_dte, max_num_retry, generated_code, error)
+                print(error)
+            elif failed_cases:  # Handle failed test cases
+                new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, failed_cases)
+                print(failed_cases)
 
-            # Retry the code improvement
-            new_code = retry(request_code_improvement, max_num_retry, generated_code, improvement_feedback)
-            new_code = new_code['solution_code']['code']
-
+            new_code = new_code['solution_code']['code'] if new_code else generated_code
             generated_code = new_code
             attempts += 1
 
@@ -402,6 +426,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
     except Exception as e:
         print(f"ERROR OCCURRED: {str(e)}")
         return None, 0
+
 
 # Process problems on a specific GPU
 def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retry):
@@ -438,14 +463,17 @@ def main():
     # Find a specific problem if given
     if args.problem_name:
         problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+        num_workers = 1
         if not problem_cases:
             print(f"No problem found with the name '{args.problem_name}'")
             return
-
-    # Split problem cases into 4 batches for 4 GPUs
-    num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
-    batch_size = max(1, len(problem_cases) // num_workers)
-    problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+        else:
+            problem_batches = problem_cases
+    else:
+        # Split problem cases into 4 batches for 4 GPUs
+        num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
+        batch_size = max(1, len(problem_cases) // num_workers)
+        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
     # Spawn workers (one for each GPU)
     processes = []

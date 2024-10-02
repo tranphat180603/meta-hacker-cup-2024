@@ -265,33 +265,64 @@ Provide the Python code in this JSON format:
 }}
 """
 
-def iterate_public_tests(generated_code, error_message):
+def iterate_execution_error(generated_code, error_message):
     return f"""
-    Task: The generated code has encountered the following issue: 
-    
+    Task: The generated code has encountered the following execution or runtime issue: 
+
     {error_message}. 
 
     Based on the latest code: 
 
     '{generated_code}',
 
-    If the problem is: there are many failed test cases. Think of another solution that may improve the passed rate.
-    If the issue is Execution/Runtime error. Focus specificly on the line causes the error and try to fix it!
+    Your task is to focus on the specific line causing the error and fix it. Ensure that the code resolves the issue without introducing new problems.
 
     Guidelines:
-    1. The fixed code should be robust and general, and work for other input examples as well. The fixed should be different from the original code, and not just a copy-paste of the original code.
-    2. You must divide the fixed code into small sub-functions, with meaningful names and functionality.
-    3. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
-    4. In order to have valid Python code. Your code must correctly process the sample_input and sample_output
-    5. The 'code' field must USE if __name__ == "__main__": to execute the final answer!
+    1. Pinpoint the line of code that is causing the error and provide a clear fix.
+    2. The fixed code must be robust and work for other input examples as well.
+    3. The fix should target only the problematic section while maintaining the original logic if valid.
+    4. Divide the fixed code into small sub-functions, with meaningful names and functionality if necessary.
+    5. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
+    6. Ensure that the code correctly processes the `sample_input` and `sample_output`.
+    7. The 'code' field must use `if __name__ == "__main__":` to execute the final answer.
 
     Provide the Python code in the following JSON format:
     {{
       "solution_code": {{
         "language": "Python",
-        "error_line": "The line that may cause the error from the latest code"
+        "error_line": "The line that caused the error from the latest code",
         "code": "Your improved Python code here.",
         "improvement": "Explain what was fixed, including specific references to line or logic changes that address the issue raised in the error message."
       }}
     }}
     """
+def iterate_failed_test_cases(generated_code, failed_tests):
+    return f"""
+    Task: The generated code has failed many test cases: 
+
+    {failed_tests}. 
+
+    Based on the latest code: 
+
+    '{generated_code}',
+
+    It seems the current approach is incorrect, so instead of trying to fix individual lines, think of another way to implement the solution that improves the pass rate. The new solution should address the core logic of the problem.
+
+    Guidelines:
+    1. The new solution should be robust and general, capable of solving all test cases including edge cases.
+    2. Create a new approach to the problem. The fixed code should not be just a minor adjustment but a creative rethinking of the solution.
+    3. Divide the new code into small sub-functions, with meaningful names and functionality.
+    4. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
+    5. Ensure that the code correctly processes the `sample_input` and `sample_output`.
+    6. The 'code' field must use `if __name__ == "__main__":` to execute the final answer.
+
+    Provide the Python code in the following JSON format:
+    {{
+      "solution_code": {{
+        "language": "Python",
+        "code": "Your newly implemented Python code here.",
+        "improvement": "Explain what new approach was taken, and how it addresses the problem better than the previous code."
+      }}
+    }}
+    """
+
