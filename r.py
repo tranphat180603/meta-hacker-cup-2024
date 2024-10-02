@@ -447,6 +447,7 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
     print(f"Finished processing on GPU {gpu_id}!")
 
 # Function to run the entire process using 4 GPUs
+# Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
 
@@ -510,6 +511,8 @@ def main():
 
     print("All GPU processing finished.")
 
+if __name__ == "__main__":
+    main()
 
 
 
