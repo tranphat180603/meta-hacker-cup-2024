@@ -111,9 +111,10 @@ if __name__ == "__main__":
 
     # Load the dataset
     ds = load_dataset("BEE-spoke-data/code_contests_instruct", "default")
+    ds = load_dataset("BEE-spoke-data/code_contests_instruct", "default")
 
     # Filter to only include entries where 'language' == 'PYTHON3' and hard problems
-    python_ds_hard = ds['train'].filter(lambda example: example['difficulty'] in [5,6,7,8,9,10] and example['language'] == 'PYTHON3')
+    python_ds = ds['train'].filter(lambda example: example['difficulty'] in [5,6,7,8,9,10] and example['language'] == 'PYTHON3')
 
     # Load the model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
