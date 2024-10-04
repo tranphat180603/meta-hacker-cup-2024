@@ -95,10 +95,10 @@ def generate_synthetic_data(dataset, batch_size=8, save_interval=10000, output_f
     print(f"Final save: Generated {len(all_results)} synthetic data points in total to {output_file}")
 
     return all_results
-    
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
-    parser.add_argument("--batch_size", type=int, default=8, help="Batch size for processing (default: 8)")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing (default: 8)")
     parser.add_argument("--model_name", type=str, default="arcee-ai/Llama-3.1-SuperNova-Lite", help="Name of the model to use")
     parser.add_argument("--output_file", type=str, default="i1-Code-Qwen-7B.json", help="Output file name")
     parser.add_argument("--save_interval", type=int, default = 10000, help = "save every n examples")
