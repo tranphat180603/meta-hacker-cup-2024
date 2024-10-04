@@ -48,7 +48,7 @@ def generate_prompt(description, solution):
     return prompt
 
 # Function to process a batch of examples
-def process_batch(batch, pbar):
+def process_batch(batch, pbar_inner):
     results = []
     for description, solution in zip(batch['description'], batch['solution']):
         user_prompt = generate_prompt(description, solution)
@@ -59,43 +59,43 @@ def process_batch(batch, pbar):
             "output": response,
             "system": "You are a competitive programming expert. Your task is to break down the problem-solving approach into detailed, structured steps. And then write valid code to solve the problem",
         })
-        pbar.update(1)  # Update inner progress bar
+        pbar_inner.update(1)  # Update inner progress bar for each example
     return results
 
 # Main processing loop with batching and nested progress tracking
 def generate_synthetic_data(dataset, batch_size=8, save_interval=10000, output_file="i1-Code-Qwen-7B.json"):
     all_results = []
     total_processed = 0  # Keep track of total processed examples
-    
+
     # Create batches
-    batches = [dataset[i:i+batch_size] for i in range(0, len(dataset), batch_size)]
-    
-    # Outer progress bar for batches
-    with tqdm(total=len(dataset), desc="Overall progress") as pbar_outer:
-        # Inner progress bar for examples within batches
-        with tqdm(total=len(dataset), desc="Processing examples", leave=False) as pbar_inner:
-            for batch in batches:
+    batches = [dataset[i:i + batch_size] for i in range(0, len(dataset), batch_size)]
+
+    # Outer progress bar for overall progress
+    with tqdm(total=len(dataset), desc="Overall Progress", unit="example") as pbar_outer:
+        for batch_idx, batch in enumerate(batches):
+            # Inner progress bar for batch processing
+            with tqdm(total=len(batch), desc=f"Processing batch {batch_idx + 1}/{len(batches)}", leave=False) as pbar_inner:
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
                 total_processed += len(batch_results)
-                
-                # Update outer progress bar
+
+                # Update outer progress bar after each batch
                 pbar_outer.update(len(batch))
-                
+
                 # Save intermediate results every `save_interval` processed examples
                 if total_processed % save_interval == 0:
                     partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
                     with open(partial_output_file, "w") as f:
                         json.dump(all_results, f, indent=4)
                     print(f"Saved {total_processed} examples to {partial_output_file}")
-    
+
     # Final save for any remaining examples
     with open(output_file, "w") as f:
         json.dump(all_results, f, indent=4)
     print(f"Final save: Generated {len(all_results)} synthetic data points in total to {output_file}")
-    
-    return all_results
 
+    return all_results
+    
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
     parser.add_argument("--batch_size", type=int, default=8, help="Batch size for processing (default: 8)")
