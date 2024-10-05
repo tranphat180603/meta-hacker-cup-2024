@@ -3,7 +3,7 @@ import asyncio
 import ujson as json
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from tqdm.asyncio import tqdm_asyncio
+from tqdm import tqdm
 import argparse
 
 # Function to apply chat template
@@ -70,7 +70,9 @@ async def save_results_async(results, file_name):
 async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=100, output_file="output.json", model=None, tokenizer=None):
     total_processed = 0
     
-    async with tqdm_asyncio(total=len(dataset), desc="Overall Progress") as pbar:
+    pbar = tqdm(total=len(dataset), desc="Overall Progress")
+    
+    try:
         for i in range(0, len(dataset), batch_size):
             batch = dataset.select(range(i, min(i + batch_size, len(dataset))))
             batch_results = await process_batch_async(batch, model, tokenizer)
@@ -81,7 +83,10 @@ async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=10
                 await save_results_async(batch_results, partial_output_file)
                 print(f"Saved {total_processed} examples to {partial_output_file}")
 
-            await pbar.update(len(batch_results))
+            pbar.update(len(batch_results))
+
+    finally:
+        pbar.close()
 
     print(f"Generated {total_processed} synthetic data points in total.")
 
