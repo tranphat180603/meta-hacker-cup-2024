@@ -69,19 +69,19 @@ async def save_results_async(results, file_name):
 
 async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=100, output_file="output.json", model=None, tokenizer=None):
     total_processed = 0
-    batches = [dataset[i:i + batch_size] for i in range(0, len(dataset), batch_size)]
-
+    
     async with tqdm_asyncio(total=len(dataset), desc="Overall Progress") as pbar:
-        for batch_idx, batch in enumerate(batches):
+        for i in range(0, len(dataset), batch_size):
+            batch = dataset.select(range(i, min(i + batch_size, len(dataset))))
             batch_results = await process_batch_async(batch, model, tokenizer)
             total_processed += len(batch_results)
 
-            if total_processed % save_interval == 0:
+            if total_processed % save_interval == 0 or total_processed == len(dataset):
                 partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
                 await save_results_async(batch_results, partial_output_file)
                 print(f"Saved {total_processed} examples to {partial_output_file}")
 
-            await pbar.update(len(batch))
+            await pbar.update(len(batch_results))
 
     print(f"Generated {total_processed} synthetic data points in total.")
 
