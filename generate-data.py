@@ -66,25 +66,34 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
     all_results = []
     total_processed = 0
 
-    batches = [dataset[i:i + batch_size] for i in range(0, len(dataset), batch_size)]
+    # Get the number of examples from the 'description' field (assuming all fields have the same length)
+    num_examples = len(dataset)
 
-    with tqdm(total=len(dataset), desc="Overall Progress", unit="example") as pbar_outer:
-        for batch_idx, batch in enumerate(batches):
-            with tqdm(total=len(batch), desc=f"Processing batch {batch_idx + 1}/{len(batches)}", leave=False) as pbar_inner:
+    # Slice the dataset into batches based on batch_size
+    with tqdm(total=num_examples, desc="Overall Progress", unit="example") as pbar_outer:
+        for i in range(0, num_examples, batch_size):
+            # Slice each field of the dataset manually to get the batch
+            batch = {
+                'description': dataset['description'][i:i + batch_size],
+                'solution': dataset['solution'][i:i + batch_size],
+            }
+
+            with tqdm(total=len(batch['description']), desc=f"Processing batch {i // batch_size + 1}/{(num_examples + batch_size - 1) // batch_size}", leave=False) as pbar_inner:
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
                 total_processed += len(batch_results)
 
-                pbar_outer.update(len(batch))
+                pbar_outer.update(len(batch['description']))
 
+                # Save at the save_interval
                 if total_processed % save_interval == 0:
                     partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
                     with open(partial_output_file, "w") as f:
                         json.dump(all_results, f, indent=4)
                     print(f"Saved {total_processed} examples to {partial_output_file}")
-                    all_results = []  # Reset after saving
+                    all_results = []  # Reset results after saving
 
-    # Final save for any remaining examples
+    # Final save for any remaining examples after the loop
     if all_results:
         final_output_file = f"{output_file.split('.')[0]}_final.json"
         with open(final_output_file, "w") as f:
