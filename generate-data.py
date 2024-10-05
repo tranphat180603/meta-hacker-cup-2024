@@ -93,15 +93,6 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
                     print(f"Saved {total_processed} examples to {partial_output_file}")
                     all_results = []  # Reset results after saving
 
-    # Final save for any remaining examples after the loop
-    if all_results:
-        final_output_file = f"{output_file.split('.')[0]}_final.json"
-        with open(final_output_file, "w") as f:
-            json.dump(all_results, f, indent=4)
-        print(f"Final save: Generated {total_processed} synthetic data points in total. Last {len(all_results)} saved to {final_output_file}")
-
-    return total_processed
-
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing (default: 8)")
@@ -133,4 +124,3 @@ if __name__ == "__main__":
 
     # Run the data generation process
     results = generate_synthetic_data(python_ds[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
-    print(f"Generated {len(results)} synthetic data points.")
