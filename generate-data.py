@@ -12,10 +12,10 @@ def apply_chat_template(messages):
 # Function to generate response
 def generate_response(messages, max_new_tokens=2048):
     full_prompt = apply_chat_template(messages)
-    model_inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
-    generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
-    generated_text = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-    response = generated_text[len(full_prompt):].strip()
+    model_inputs = tokenizer([full_prompt], return_tensors="pt").to(model.device)
+    generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens)
+    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
 def generate_prompt(description, solution):
@@ -67,7 +67,7 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
     total_processed = 0
 
     # Get the number of examples from the 'description' field (assuming all fields have the same length)
-    num_examples = len(dataset)
+    num_examples = len(dataset['description'])
     print(f"Len dataset: {len(dataset)}")
 
     # Slice the dataset into batches based on batch_size
