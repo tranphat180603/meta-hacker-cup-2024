@@ -11,7 +11,7 @@ def apply_chat_template(messages):
     return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 # Function to generate response
-def generate_response(messages, max_new_tokens=2048):
+def generate_response(messages, model, tokenizer,max_new_tokens=2048):
     full_prompt = apply_chat_template(messages)
     model_inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
     generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
