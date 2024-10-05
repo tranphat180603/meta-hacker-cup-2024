@@ -54,13 +54,12 @@ async def process_batch_async(batch, model, tokenizer):
     for description, solution in zip(batch['description'], batch['solution']):
         user_prompt = generate_prompt(description, solution)
         messages = [{"role": "user", "content": user_prompt}]
-        response = await asyncio.to_thread(generate_response, messages, model, tokenizer)  # Run in a separate thread
+        response = generate_response(messages, model, tokenizer)
         results.append({
             "instruction": description,
             "output": response,
             "system": "You are a competitive programming expert. Your task is to break down the problem-solving approach into detailed, structured steps. And then write valid code to solve the problem",
         })
-    torch.cuda.empty_cache()  # Clear GPU memory between batches
     return results
 
 async def save_results_async(results, file_name):
