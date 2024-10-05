@@ -111,6 +111,7 @@ if __name__ == "__main__":
     
     # Determine the dataset slice
     dataset_slice = python_ds[args.ds_start:] if args.ds_end == 0 else python_ds[args.ds_start:args.ds_end]
+    print(dataset_slice)
 
     # Load the model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
