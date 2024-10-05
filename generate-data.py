@@ -75,11 +75,16 @@ async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=10
     
     try:
         for i in range(0, len(dataset), batch_size):
-            batch = dataset.select(range(i, min(i + batch_size, len(dataset))))
+            # Slicing the dictionary into batches manually
+            batch = {
+                'description': dataset['description'][i: i + batch_size],
+                'solution': dataset['solution'][i: i + batch_size]
+            }
+            
             batch_results = await process_batch_async(batch, model, tokenizer)
             total_processed += len(batch_results)
 
-            if total_processed % save_interval == 0 or total_processed == len(dataset):
+            if total_processed % save_interval == 0 or total_processed == len(dataset['description']):
                 partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
                 await save_results_async(batch_results, partial_output_file)
                 print(f"Saved {total_processed} examples to {partial_output_file}")
