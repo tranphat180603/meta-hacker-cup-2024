@@ -78,10 +78,11 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
                 'solution': dataset['solution'][i:i + batch_size],
             }
 
-            with tqdm(total=len(batch['description']), desc=f"Processing batch {i // batch_size + 1}/{(num_examples + batch_size - 1) // batch_size}", leave=False) as pbar_inner:
+            with tqdm(total=batch_size, desc=f"Processing batch {i // batch_size + 1}/{(num_examples + batch_size - 1) // batch_size}", leave=False) as pbar_inner:
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
                 total_processed += len(batch_results)
+                print(f"Total_processed {total_processed}")
 
                 pbar_outer.update(len(batch['description']))
 
@@ -92,6 +93,7 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
                         json.dump(all_results, f, indent=4)
                     print(f"Saved {total_processed} examples to {partial_output_file}")
                     all_results = []  # Reset results after saving
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
