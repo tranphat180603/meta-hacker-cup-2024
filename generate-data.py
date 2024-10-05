@@ -112,8 +112,10 @@ if __name__ == "__main__":
 
     # Load the dataset
     ds = load_dataset("BEE-spoke-data/code_contests_instruct", "default")
+    print("Filtering dataset: ")
     python_ds = ds['train'].filter(lambda example: example['difficulty'] in [6,7,8,9,10] and example['language'] == 'PYTHON3')
-    
+    print("Filtering dataset: DONE!!! ")
+
     # Determine the dataset slice
     dataset_slice = python_ds[args.ds_start:] if args.ds_end == 0 else python_ds[args.ds_start:args.ds_end]
     print(dataset_slice)
