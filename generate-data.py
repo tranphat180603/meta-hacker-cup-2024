@@ -68,6 +68,7 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
 
     # Get the number of examples from the 'description' field (assuming all fields have the same length)
     num_examples = len(dataset)
+    print(f"Len dataset: {len(dataset)}")
 
     # Slice the dataset into batches based on batch_size
     with tqdm(total=num_examples, desc="Overall Progress", unit="example") as pbar_outer:
@@ -81,7 +82,8 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
             with tqdm(total=batch_size, desc=f"Processing batch {i // batch_size + 1}/{(num_examples + batch_size - 1) // batch_size}", leave=False) as pbar_inner:
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
-                total_processed += len(batch_results)
+                total_processed += batch_size
+
                 print(f"Total_processed {total_processed}")
 
                 pbar_outer.update(len(batch['description']))
