@@ -13,8 +13,7 @@ def apply_chat_template(messages):
 def generate_response(messages, max_new_tokens=2048):
     full_prompt = apply_chat_template(messages)
     model_inputs = tokenizer([full_prompt], return_tensors="pt").to(model.device)
-    generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens)
-    generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+    generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
@@ -54,6 +53,7 @@ def process_batch(batch, pbar_inner):
         user_prompt = generate_prompt(description, solution)
         messages = [{"role": "user", "content": user_prompt}]
         response = generate_response(messages)
+        print(f"Response: {response}")
         results.append({
             "instruction": description,
             "output": response,
@@ -68,7 +68,7 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
 
     # Get the number of examples from the 'description' field (assuming all fields have the same length)
     num_examples = len(dataset['description'])
-    print(f"Len dataset: {len(dataset)}")
+    print(f"Len dataset: {num_examples}")
 
     # Slice the dataset into batches based on batch_size
     with tqdm(total=num_examples, desc="Overall Progress", unit="example") as pbar_outer:
