@@ -79,6 +79,8 @@ async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=10
                 'description': dataset['description'][i: i + batch_size],
                 'solution': dataset['solution'][i: i + batch_size]
             }
+            print("Finished processing batch")
+            print("Starting generate data for this batch")
             
             batch_results = await process_batch_async(batch, model, tokenizer)
             total_processed += len(batch_results)
@@ -126,6 +128,7 @@ if __name__ == "__main__":
     tokenizer.eos_token_id = 128001
     model.config.pad_token_id = tokenizer.eos_token_id
 
+    print(f"Finished loading model")
     # Run the data generation process
     asyncio.run(generate_synthetic_data_async(
         dataset_slice,
