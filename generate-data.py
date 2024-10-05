@@ -58,7 +58,6 @@ def process_batch(batch, pbar_inner):
         user_prompt = generate_prompt(description, solution)
         messages = [{"role": "user", "content": user_prompt}]
         response = generate_response(messages)
-        print(f"Response: {response}")
         results.append({
             "instruction": description,
             "output": response,
@@ -88,7 +87,6 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=1, output_file=
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
                 total_processed += batch_size
-                print(f"Total_processed {total_processed}")
 
                 pbar_outer.update(len(batch['description']))
 
