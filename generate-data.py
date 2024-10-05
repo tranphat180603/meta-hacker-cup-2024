@@ -14,6 +14,11 @@ def generate_response(messages, max_new_tokens=2048):
     full_prompt = apply_chat_template(messages)
     model_inputs = tokenizer([full_prompt], return_tensors="pt").to(model.device)
     generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
+
+    generated_ids = [
+        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+    ]
+
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
@@ -62,7 +67,7 @@ def process_batch(batch, pbar_inner):
         pbar_inner.update(1)  # Update inner progress bar for each example
     return results
 
-def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file="i1-Code-Qwen-7B.json"):
+def generate_synthetic_data(dataset, batch_size=1, save_interval=1, output_file="i1-Code-Qwen-7B.json"):
     all_results = []
     total_processed = 0
 
@@ -83,7 +88,6 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file
                 batch_results = process_batch(batch, pbar_inner)
                 all_results.extend(batch_results)
                 total_processed += batch_size
-
                 print(f"Total_processed {total_processed}")
 
                 pbar_outer.update(len(batch['description']))
