@@ -1,17 +1,16 @@
-import asyncio
-import ujson as json
-from datasets import load_dataset
+from datasets import load_dataset, concatenate_datasets
 from transformers import AutoTokenizer, AutoModelForCausalLM
+import json
 from tqdm import tqdm
-import argparse
 import torch
+import argparse
 
 # Function to apply chat template
 def apply_chat_template(messages):
     return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
 # Function to generate response
-def generate_response(messages, model, tokenizer,max_new_tokens=2048):
+def generate_response(messages, max_new_tokens=2048):
     full_prompt = apply_chat_template(messages)
     model_inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
     generated_ids = model.generate(**model_inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
@@ -48,77 +47,72 @@ def generate_prompt(description, solution):
     """
     return prompt
 
-
-async def process_batch_async(batch, model, tokenizer):
+# Function to process a batch of examples
+def process_batch(batch, pbar_inner):
     results = []
     for description, solution in zip(batch['description'], batch['solution']):
         user_prompt = generate_prompt(description, solution)
         messages = [{"role": "user", "content": user_prompt}]
-        response = generate_response(messages, model, tokenizer)
+        response = generate_response(messages)
         results.append({
             "instruction": description,
             "output": response,
             "system": "You are a competitive programming expert. Your task is to break down the problem-solving approach into detailed, structured steps. And then write valid code to solve the problem",
         })
+        pbar_inner.update(1)  # Update inner progress bar for each example
     return results
 
-async def save_results_async(results, file_name):
-    async with asyncio.Lock():
-        with open(file_name, "w") as f:
-            json.dump(results, f)
-
-async def generate_synthetic_data_async(dataset, batch_size=32, save_interval=100, output_file="output.json", model=None, tokenizer=None):
+def generate_synthetic_data(dataset, batch_size=1, save_interval=10, output_file="i1-Code-Qwen-7B.json"):
+    all_results = []
     total_processed = 0
-    
-    pbar = tqdm(total=len(dataset), desc="Overall Progress")
-    
-    try:
-        for i in range(0, len(dataset), batch_size):
-            # Slicing the dictionary into batches manually
-            batch = {
-                'description': dataset['description'][i: i + batch_size],
-                'solution': dataset['solution'][i: i + batch_size]
-            }
-            print("Finished processing batch")
-            print("Starting generate data for this batch")
-            
-            batch_results = await process_batch_async(batch, model, tokenizer)
-            total_processed += len(batch_results)
 
-            if total_processed % save_interval == 0 or total_processed == len(dataset['description']):
-                partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
-                await save_results_async(batch_results, partial_output_file)
-                print(f"Saved {total_processed} examples to {partial_output_file}")
+    batches = [dataset[i:i + batch_size] for i in range(0, len(dataset), batch_size)]
 
-            pbar.update(len(batch_results))
+    with tqdm(total=len(dataset), desc="Overall Progress", unit="example") as pbar_outer:
+        for batch_idx, batch in enumerate(batches):
+            with tqdm(total=len(batch), desc=f"Processing batch {batch_idx + 1}/{len(batches)}", leave=False) as pbar_inner:
+                batch_results = process_batch(batch, pbar_inner)
+                all_results.extend(batch_results)
+                total_processed += len(batch_results)
 
-    finally:
-        pbar.close()
+                pbar_outer.update(len(batch))
 
-    print(f"Generated {total_processed} synthetic data points in total.")
+                if total_processed % save_interval == 0:
+                    partial_output_file = f"{output_file.split('.')[0]}_part_{total_processed}.json"
+                    with open(partial_output_file, "w") as f:
+                        json.dump(all_results, f, indent=4)
+                    print(f"Saved {total_processed} examples to {partial_output_file}")
+                    all_results = []  # Reset after saving
 
+    # Final save for any remaining examples
+    if all_results:
+        final_output_file = f"{output_file.split('.')[0]}_final.json"
+        with open(final_output_file, "w") as f:
+            json.dump(all_results, f, indent=4)
+        print(f"Final save: Generated {total_processed} synthetic data points in total. Last {len(all_results)} saved to {final_output_file}")
+
+    return total_processed
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing (default: 8)")
     parser.add_argument("--model_name", type=str, default="arcee-ai/Llama-3.1-SuperNova-Lite", help="Name of the model to use")
-    parser.add_argument("--output_file", type=str, default="output.json", help="Output file name")
-    parser.add_argument("--save_interval", type=int, default=100, help="Save every n examples")
-    parser.add_argument("--ds_start", type=int, default=0, help="Dataset start index")
-    parser.add_argument("--ds_end", type=int, default=0, help="Dataset end index")
+    parser.add_argument("--output_file", type=str, default="i1-Code-Qwen-7B.json", help="Output file name")
+    parser.add_argument("--save_interval", type=int, default = 100, help = "save every n examples")
+    parser.add_argument("--ds_start", type=int, default = 0, help = "dataset interval")
+    parser.add_argument("--ds_end", type=int, default = 0, help = "dataset interval")
     return parser.parse_args()
+
+
 
 if __name__ == "__main__":
     args = parse_arguments()
 
     # Load the dataset
     ds = load_dataset("BEE-spoke-data/code_contests_instruct", "default")
-    print("Filtering dataset: ")
-    python_ds = ds['train'].filter(lambda example: example['difficulty'] in [6,7,8,9,10] and example['language'] == 'PYTHON3')
-    print("Filtering dataset: DONE!!! ")
 
-    # Determine the dataset slice
-    dataset_slice = python_ds[args.ds_start:] if args.ds_end == 0 else python_ds[args.ds_start:args.ds_end]
+    # Filter to only include entries where 'language' == 'PYTHON3' and hard problems
+    python_ds = ds['train'].filter(lambda example: example['difficulty'] in [6,7,8,9,10] and example['language'] == 'PYTHON3')
 
     # Load the model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -128,13 +122,6 @@ if __name__ == "__main__":
     tokenizer.eos_token_id = 128001
     model.config.pad_token_id = tokenizer.eos_token_id
 
-    print(f"Finished loading model")
     # Run the data generation process
-    asyncio.run(generate_synthetic_data_async(
-        dataset_slice,
-        batch_size=args.batch_size,
-        save_interval=args.save_interval,
-        output_file=args.output_file,
-        model=model,
-        tokenizer=tokenizer
-    ))
+    results = generate_synthetic_data(python_ds[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
+    print(f"Generated {len(results)} synthetic data points.")
