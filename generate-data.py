@@ -150,4 +150,4 @@ if __name__ == "__main__":
         raise ValueError("Must set dataset ending larger than 0 and smaller than it's length")
 
     # Run the data generation process
-    results = generate_synthetic_data(filtered_data[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
+    generate_synthetic_data(filtered_data[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
