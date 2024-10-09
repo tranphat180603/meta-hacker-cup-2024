@@ -34,7 +34,6 @@ def parse_args():
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     return parser.parse_args()
 
-
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, temperature=0.3):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
@@ -354,7 +353,7 @@ def request_code_improvement_dtfc(generated_code, failed_tests):  # Due to faile
         Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
         Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
         Return only the new, complete solution in valid JSON format, without explanations or comments.
-        """, temperature=0.7)
+        """, temperature=0.9)
     except Exception as e:
         print(f"Error in request_code_improvement_dtfc: {str(e)}")
         return None

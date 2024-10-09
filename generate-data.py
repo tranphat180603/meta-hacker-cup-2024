@@ -66,7 +66,14 @@ def process_batch(batch, pbar_inner):
         pbar_inner.update(1)  # Update inner progress bar for each example
     return results
 
+def is_power_of_2(n):
+    return n > 0 and (n & (n - 1)) == 0
+
 def generate_synthetic_data(dataset, batch_size=1, save_interval=1, output_file="i1-Code-Qwen-7B.json"):
+    assert batch_size > 0, "batch_size must be positive"
+    assert is_power_of_2(batch_size), "batch_size must be a power of 2"
+    assert is_power_of_2(save_interval), "save_interval must be a power of 2"
+
     all_results = []
     total_processed = 0
 
@@ -101,14 +108,24 @@ def generate_synthetic_data(dataset, batch_size=1, save_interval=1, output_file=
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Generate synthetic data from code contests dataset")
-    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing (default: 8)")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for processing (default: 8). Must be set to a power of 2")
     parser.add_argument("--model_name", type=str, default="arcee-ai/Llama-3.1-SuperNova-Lite", help="Name of the model to use")
     parser.add_argument("--output_file", type=str, default="i1-Code-Qwen-7B.json", help="Output file name")
-    parser.add_argument("--save_interval", type=int, default = 100, help = "save every n examples")
+    parser.add_argument("--save_interval", type=int, default = 64, help = "save every n examples. Must be set to a power of 2")
     parser.add_argument("--ds_start", type=int, default = 0, help = "dataset interval")
     parser.add_argument("--ds_end", type=int, default = 0, help = "dataset interval")
+    parser.add_argument("--num_solutions", type=int, default = 1, help = "Most CP datasets have n solutions for 1 problem")
     return parser.parse_args()
 
+
+def dataloader(ds, num_sols): #Problem với tiêu chí: 1: Medium - hard. 2:Problem có solution ở python3 và CPP. 3: Lấy ra num_sols của mỗi problem đó
+    solution_count = {}
+    filtered_ds = ds['train'].filter(
+        lambda example: example['difficulty'] != 0 and example['language'] in ['PYTHON3', 'CPP']
+        and  solution_count.setdefault(example['name'], 0) < num_sols 
+        and not solution_count.update({example['name']: solution_count[example['name']] + 1})
+    )
+    return filtered_ds
 
 
 if __name__ == "__main__":
@@ -118,7 +135,7 @@ if __name__ == "__main__":
     ds = load_dataset("BEE-spoke-data/code_contests_instruct", "default")
 
     # Filter to only include entries where 'language' == 'PYTHON3' and hard problems
-    python_ds = ds['train'].filter(lambda example: example['difficulty'] in [6,7,8,9,10] and example['language'] == 'PYTHON3')
+    filtered_data = dataloader(ds, args.num_solutions)
 
     # Load the model and tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -128,5 +145,9 @@ if __name__ == "__main__":
     tokenizer.eos_token_id = 128001
     model.config.pad_token_id = tokenizer.eos_token_id
 
+    if not args.ds_end or args.ds_end > len(filtered_data):
+        args.ds_end = len(filtered_data)
+        raise ValueError("Must set dataset ending larger than 0 and smaller than it's length")
+
     # Run the data generation process
-    results = generate_synthetic_data(python_ds[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
+    results = generate_synthetic_data(filtered_data[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
