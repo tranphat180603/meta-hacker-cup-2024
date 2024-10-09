@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     if not args.ds_end or args.ds_end > len(filtered_data):
         args.ds_end = len(filtered_data)
-        raise ValueError("Must set dataset ending larger than 0 and smaller than it's length")
+        print(f"The length of the actual dataset is {len(filtered_data)}. Initialize ds_end equal to the length of the actual dataset")
 
     # Run the data generation process
     generate_synthetic_data(filtered_data[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
