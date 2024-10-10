@@ -1,0 +1,17 @@
+Problem 1/71: cheeseburger_corollary_ch1, Score: 71.42857142857143%
+Problem 2/71: two_apples_a_day, Error: cannot unpack non-iterable NoneType object
+Problem 3/71: cheeseburger_corollary_ch2, Score: 16.666666666666664%
+Problem 4/71: road_to_nutella, Error: cannot unpack non-iterable NoneType object
+Problem 5/71: spooky_splits, Error: cannot unpack non-iterable NoneType object
+Problem 6/71: similar_ships, Error: cannot unpack non-iterable NoneType object
+Problem 7/71: double_stars, Error: cannot unpack non-iterable NoneType object
+Problem 8/71: krabotage, Error: cannot unpack non-iterable NoneType object
+Problem 9/71: hash_slinger, Error: cannot unpack non-iterable NoneType object
+Problem 10/71: cacti_cartography, Error: cannot unpack non-iterable NoneType object
+Problem 11/71: transposing_tiles, Error: cannot unpack non-iterable NoneType object
+Problem 12/71: dealing_decks, Error: cannot unpack non-iterable NoneType object
+Problem 13/71: programming_paths_part_2, Error: cannot unpack non-iterable NoneType object
+Problem 14/71: nearly_nim, Error: cannot unpack non-iterable NoneType object
+Problem 15/71: resisting_robots, Error: cannot unpack non-iterable NoneType object
+Problem 16/71: programming_paths_part_1, Error: cannot unpack non-iterable NoneType object
+Problem 17/71: sum_41_ch1, Score: 0%

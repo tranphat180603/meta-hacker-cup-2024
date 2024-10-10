@@ -1,0 +1,71 @@
+Problem 1/71: consistency_ch2, Error: cannot unpack non-iterable NoneType object
+Problem 2/71: gold_mine_ch1, Error: cannot unpack non-iterable NoneType object
+Problem 3/71: xs_and_os, Error: cannot unpack non-iterable NoneType object
+Problem 4/71: valet_parking_ch2, Error: cannot unpack non-iterable NoneType object
+Problem 5/71: runway, Score: 20.0%
+Problem 6/71: chainblock, Error: cannot unpack non-iterable NoneType object
+Problem 7/71: string_concatenation, Error: cannot unpack non-iterable NoneType object
+Problem 8/71: valet_parking_ch1, Score: 50.0%
+Problem 9/71: rep-ore-ting, Score: 20.0%
+Problem 10/71: expl-ore-ation_ch3, Error: cannot unpack non-iterable NoneType object
+Problem 11/71: perf-ore-mance, Score: 28.57142857142857%
+Problem 12/71: expl-ore-ation_ch2, Error: cannot unpack non-iterable NoneType object
+Problem 13/71: auth-ore-ization, Error: cannot unpack non-iterable NoneType object
+Problem 14/71: expl-ore-ation_ch1, Error: cannot unpack non-iterable NoneType object
+Problem 15/71: antisocial, Error: cannot unpack non-iterable NoneType object
+Problem 16/71: vacation, Error: cannot unpack non-iterable NoneType object
+Problem 17/71: table_flipping, Score: 57.14285714285714%
+Problem 18/71: hire_flyers, Error: cannot unpack non-iterable NoneType object
+Problem 19/71: and, Error: cannot unpack non-iterable NoneType object
+Problem 20/71: ssssss, Error: cannot unpack non-iterable NoneType object
+Problem 21/71: traffic_control, Error: cannot unpack non-iterable NoneType object
+Problem 22/71: weak_typing_ch2, Error: cannot unpack non-iterable NoneType object
+Problem 23/71: weak_typing_ch3, Error: cannot unpack non-iterable NoneType object
+Problem 24/71: weak_typing_ch1, Error: cannot unpack non-iterable NoneType object
+Problem 25/71: blockchain, Score: 20.0%
+Problem 26/71: mr_x, Error: cannot unpack non-iterable NoneType object
+Problem 27/71: service_trees, Error: cannot unpack non-iterable NoneType object
+Problem 28/71: leapfrog2, Error: cannot unpack non-iterable NoneType object
+Problem 29/71: leapfrog1, Error: cannot unpack non-iterable NoneType object
+Problem 30/71: seafood, Error: cannot unpack non-iterable NoneType object
+Problem 31/71: bitstrings_as_a_service, Score: 16.666666666666664%
+Problem 32/71: on_the_run, Error: cannot unpack non-iterable NoneType object
+Problem 33/71: grading, Error: cannot unpack non-iterable NoneType object
+Problem 34/71: renovations, Error: cannot unpack non-iterable NoneType object
+Problem 35/71: integers_as_service, Score: 33.33333333333333%
+Problem 36/71: chain_of_command, Score: 0%
+Problem 37/71: light_show, Error: cannot unpack non-iterable NoneType object
+Problem 38/71: cold_storage, Error: cannot unpack non-iterable NoneType object
+Problem 39/71: temporal_revision, Error: cannot unpack non-iterable NoneType object
+Problem 40/71: khajiit, Score: 57.14285714285714%
+Problem 41/71: little_boat_on_the_sea, Error: cannot unpack non-iterable NoneType object
+Problem 42/71: scoreboard, Error: cannot unpack non-iterable NoneType object
+Problem 43/71: strings_as_a_service, Error: cannot unpack non-iterable NoneType object
+Problem 44/71: graphs_as_a_service, Error: cannot unpack non-iterable NoneType object
+Problem 45/71: class_treasurer, Error: cannot unpack non-iterable NoneType object
+Problem 46/71: connect_the_dots, Error: cannot unpack non-iterable NoneType object
+Problem 47/71: ladders_and_snakes, Error: cannot unpack non-iterable NoneType object
+Problem 48/71: studious_student, Error: cannot unpack non-iterable NoneType object
+Problem 49/71: peg_game, Error: cannot unpack non-iterable NoneType object
+Problem 50/71: double_squares, Error: cannot unpack non-iterable NoneType object
+Problem 51/71: diminishing_circle, Error: cannot unpack non-iterable NoneType object
+Problem 52/71: slot_machine_hacker, Error: cannot unpack non-iterable NoneType object
+Problem 53/71: chess_2, Error: cannot unpack non-iterable NoneType object
+Problem 54/71: scotts_new_trick, Score: 20.0%
+Problem 55/71: bonus_assignments, Error: cannot unpack non-iterable NoneType object
+Problem 56/71: studious_student_ii, Error: cannot unpack non-iterable NoneType object
+Problem 57/71: wine_tasting, Error: cannot unpack non-iterable NoneType object
+Problem 58/71: turn_on_the_lights, Error: cannot unpack non-iterable NoneType object
+Problem 59/71: diversity_number, Error: cannot unpack non-iterable NoneType object
+Problem 60/71: party_time, Error: cannot unpack non-iterable NoneType object
+Problem 61/71: safest_place, Error: cannot unpack non-iterable NoneType object
+Problem 62/71: alien_game, Error: cannot unpack non-iterable NoneType object
+Problem 63/71: polynomial_factoring, Error: cannot unpack non-iterable NoneType object
+Problem 64/71: risky_slide, Error: cannot unpack non-iterable NoneType object
+Problem 65/71: n_factorful, Score: 80.0%
+Problem 66/71: alchemy, Error: cannot unpack non-iterable NoneType object
+Problem 67/71: travel_restrictions, Error: cannot unpack non-iterable NoneType object
+Problem 68/71: timber, Error: cannot unpack non-iterable NoneType object
+Problem 69/71: running_on_fumes_ch2, Score: 0%
+Problem 70/71: running_on_fumes_ch1, Error: cannot unpack non-iterable NoneType object
+Problem 71/71: elimination, Error: cannot unpack non-iterable NoneType object

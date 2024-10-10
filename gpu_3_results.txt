@@ -1,0 +1,16 @@
+Problem 1/71: log_drivin_hirin, Error: cannot unpack non-iterable NoneType object
+Problem 2/71: capastaty, Error: cannot unpack non-iterable NoneType object
+Problem 3/71: circular_circles, Error: cannot unpack non-iterable NoneType object
+Problem 4/71: railroad_renovations, Score: 42.857142857142854%
+Problem 5/71: smart_carts, Error: cannot unpack non-iterable NoneType object
+Problem 6/71: mail_security, Error: cannot unpack non-iterable NoneType object
+Problem 7/71: chain_explosions, Score: 7.142857142857142%
+Problem 8/71: cryptoconference, Error: cannot unpack non-iterable NoneType object
+Problem 9/71: tree_training, Error: cannot unpack non-iterable NoneType object
+Problem 10/71: spider_spring, Error: cannot unpack non-iterable NoneType object
+Problem 11/71: somebody_elses_problem, Error: cannot unpack non-iterable NoneType object
+Problem 12/71: cake_cutting_committee, Error: cannot unpack non-iterable NoneType object
+Problem 13/71: pond_precipitation, Error: cannot unpack non-iterable NoneType object
+Problem 14/71: quarantine, Error: cannot unpack non-iterable NoneType object
+Problem 15/71: dislodging_logs, Score: 0%
+Problem 16/71: perimetric_ch1, Error: cannot unpack non-iterable NoneType object

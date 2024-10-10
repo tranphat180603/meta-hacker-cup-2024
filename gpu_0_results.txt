@@ -1,0 +1,38 @@
+Problem 1/71: new_years_resolution, Error: cannot unpack non-iterable NoneType object
+Problem 2/71: cooking_the_books, Score: 40.0%
+Problem 3/71: laser_maze, Error: cannot unpack non-iterable NoneType object
+Problem 4/71: lazy_sort, Error: cannot unpack non-iterable NoneType object
+Problem 5/71: fox_socks, Error: cannot unpack non-iterable NoneType object
+Problem 6/71: all_critical, Error: cannot unpack non-iterable NoneType object
+Problem 7/71: autocomplete_strikes_back, Error: cannot unpack non-iterable NoneType object
+Problem 8/71: lunch_scheduling, Error: cannot unpack non-iterable NoneType object
+Problem 9/71: gentrification, Error: cannot unpack non-iterable NoneType object
+Problem 10/71: boomerang, Error: cannot unpack non-iterable NoneType object
+Problem 11/71: fox_rocks, Error: cannot unpack non-iterable NoneType object
+Problem 12/71: fox_locks, Error: cannot unpack non-iterable NoneType object
+Problem 13/71: fox_blocks, Error: cannot unpack non-iterable NoneType object
+Problem 14/71: fox_lochs, Score: 80.0%
+Problem 15/71: fox_hawks, Error: cannot unpack non-iterable NoneType object
+Problem 16/71: fox_focks, Score: 20.0%
+Problem 17/71: corporate_gifting, Score: 0%
+Problem 18/71: winning_at_sports, Error: cannot unpack non-iterable NoneType object
+Problem 19/71: homework, Error: cannot unpack non-iterable NoneType object
+Problem 20/71: autocomplete, Error: cannot unpack non-iterable NoneType object
+Problem 21/71: lazyloading, Score: 0%
+Problem 22/71: progresspie, Error: cannot unpack non-iterable NoneType object
+Problem 23/71: fightingthezombie, Error: cannot unpack non-iterable NoneType object
+Problem 24/71: bigtop, Error: cannot unpack non-iterable NoneType object
+Problem 25/71: rainovernewyork, Error: cannot unpack non-iterable NoneType object
+Problem 26/71: subtlesabotage, Error: cannot unpack non-iterable NoneType object
+Problem 27/71: fightingallthezombies, Error: cannot unpack non-iterable NoneType object
+Problem 28/71: salientstrings, Error: cannot unpack non-iterable NoneType object
+Problem 29/71: steadfastsnakes, Error: cannot unpack non-iterable NoneType object
+Problem 30/71: brokenbits, Error: cannot unpack non-iterable NoneType object
+Problem 31/71: piepackages, Error: cannot unpack non-iterable NoneType object
+Problem 32/71: sluggishsecurity, Error: cannot unpack non-iterable NoneType object
+Problem 33/71: holes, Score: 20.0%
+Problem 34/71: strolls, Error: cannot unpack non-iterable NoneType object
+Problem 35/71: moles, Error: cannot unpack non-iterable NoneType object
+Problem 36/71: poles, Error: cannot unpack non-iterable NoneType object
+Problem 37/71: patrols, Error: cannot unpack non-iterable NoneType object
+Problem 38/71: tolls, Score: 0%
