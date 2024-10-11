@@ -15,7 +15,7 @@ def get_problem_understanding_template(problem_description):
         "goal": "State the main objective of the problem in your own words.",
         "constraints": "List all constraints and limitations of the problem as you understand them.",
         "test_cases": {{
-          "input_format": "Describe how input is structured, including edge cases if applicable.",
+          "input_format": "Describe how input is structured.",
           "output_format": "Describe how output is structured."
         }},
         "important_ideas": [
@@ -51,9 +51,9 @@ def analyze_original_test_cases_template(problem_description):
     - Input:
       3 (number of test cases)
       Test Case 1:
-        Line 1: N, K (e.g., 4 17)
-        Line 2: traveler_1 time (e.g., 1)
-        Line 3: traveler_2 time (e.g., 2)
+        Line 1: N, K 
+        Line 2: traveler_1 time 
+        Line 3: traveler_2 time 
         ...
       Test Case 2: values or variables as per the problem
       ...

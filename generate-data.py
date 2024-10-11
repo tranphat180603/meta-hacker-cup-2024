@@ -2,7 +2,7 @@ from datasets import load_dataset, concatenate_datasets
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import json
 from tqdm import tqdm
-import torch
+import os
 import argparse
 
 # Function to apply chat template
@@ -127,8 +127,34 @@ def dataloader(ds, num_sols): #Problem với tiêu chí: 1: Medium - hard. 2:Pro
     )
     return filtered_ds
 
+def datamerger(folder_path):
+    # Initialize an empty list to store data from all files
+    merged_data = []
+
+    # Iterate over all files in the folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, 'r') as json_file:
+                data = json.load(json_file)  # Load each JSON file's content
+                if isinstance(data, list):
+                    for entry in data:
+                        if "instruction" in entry and "output" in entry:
+                            entry["input"] = ""  # Add "input" key between "instruction" and "output"
+                    merged_data.extend(data)  # Extend the main list with the content
+                elif isinstance(data, dict):
+                    if "instruction" in data and "output" in data:
+                        data["input"] = ""  # Add "input" key if it's a single dictionary
+                    merged_data.append(data)  # Add the dictionary to the list
+
+    # Write the merged data to a new JSON file
+    with open('merged_file.json', 'w') as outfile:
+        json.dump(merged_data, outfile, indent=4)  # Write the list to a single JSON file
+
+    print("JSON files have been merged successfully!")
 
 if __name__ == "__main__":
+    folder_path = "/meta-hacker-cup-2024/"
     args = parse_arguments()
 
     # Load the dataset
@@ -151,3 +177,6 @@ if __name__ == "__main__":
 
     # Run the data generation process
     generate_synthetic_data(filtered_data[args.ds_start : args.ds_end], batch_size=args.batch_size, save_interval = args.save_interval, output_file = args.output_file)
+
+    #merge the final results
+    datamerger(folder_path)
