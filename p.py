@@ -59,7 +59,7 @@ def analyze_original_test_cases_template(problem_description):
       ...
 
     - Output:
-      Expected output format specified by the problem (e.g., Case #1: YES, result values, etc.).
+      Expected output format specified by the problem (e.g., Case #1: YES, result values, etc.). 
     
     **Provide the analysis in the following generalized JSON structure**:
     {{
@@ -83,13 +83,11 @@ def analyze_original_test_cases_template(problem_description):
               "output_explanation": "Explain why these inputs lead to this specific output, considering the problem's constraints and logic."
             }}
           }},
-          "and so on for all test cases..."
         }}
       ],
       "test_case_reflection": {{
         "key_observations": [
-          "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem.
-          Be as specific as possible. Your observation could be a formula, an algorithm or a chain of steps that lead to the result."
+          "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem. Be as specific as possible. Your observation could be a formula, an algorithm or a chain of steps that lead to the result."
         ],
         "variable_roles": {{
           "variable_name": "Explain the role or significance of each variable in the problem, based on how it's used across test cases."
@@ -103,6 +101,7 @@ def analyze_original_test_cases_template(problem_description):
     
     Ensure that your analysis in the 'test_case_reflection' section captures general insights about the problem that go beyond individual test cases. This should include patterns observed across all test cases, important considerations for solving the problem efficiently, and any key relationships between variables that become apparent from analyzing multiple examples.
     """
+
 def refine_problem_understanding_template(problem_understanding, test_case_analysis):
     return f"""
     Task: Now that you have analyzed the test cases and re-evaluated your initial understanding, refine the problem understanding. Focus on any new insights, corrections, or additional ideas that emerged from examining the test cases.
