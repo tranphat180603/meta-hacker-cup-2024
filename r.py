@@ -27,8 +27,6 @@ from p import (
 )
 
 
-#init a flag whether to print the response of model during the execution
-show_coT = False
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
