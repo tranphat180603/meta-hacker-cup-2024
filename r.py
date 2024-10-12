@@ -493,7 +493,6 @@ def run_full_process(problem_description, test_input, test_output ,code_iteratio
 
         # After max iterations, return the best result so far if it exists
         if best_score > 0:
-            print(f"Returning best code with score {best_score}% after {attempts} attempts.")
             return best_code, best_score
 
     except Exception as e:
