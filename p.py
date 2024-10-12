@@ -67,22 +67,41 @@ def analyze_original_test_cases_template(problem_description):
       "original_test_case_analysis": [
         {{
           "total_number_of_test_cases": "Extract the total number of test cases from the input.",
-          "test_case_X": {{
-            "input": {{
-              "line_1": {{
-                "component_name": "Name of the element/variable.",
-                "value": "What's the value of that component? If there are more than 1 component just write their names and values in the same line" 
+          "test_cases": [
+            {{
+              "input": {{
+                "line_1": {{
+                  "component_name": "Name of the element/variable.",
+                  "value": "What's the value of that component? If there are more than 1 component just write their names and values in the same line" 
+                }},
+                "line_2": {{
+                  "component_name": "Name of the second element/variable if present.",
+                  "value": "What's the value of that second component?"
+                }}
               }},
-              "line_2": {{
-                "component_name": "Name of the second element/variable if present.",
-                "value": "What's the value of that second component?"
+              "output": {{
+                "target_output": "The expected output as per the problem statement (e.g., `Case #X: YES/NO`, integer result, etc.).",
+                "output_explanation": "Explain why these inputs lead to this specific output, considering the problem's constraints and logic."
               }}
             }},
-            "output": {{
-              "target_output": "The expected output as per the problem statement (e.g., `Case #X: YES/NO`, integer result, etc.).",
-              "output_explanation": "Explain why these inputs lead to this specific output, considering the problem's constraints and logic."
-            }}
-          }},
+            {{
+              "input": {{
+                "line_1": {{
+                  "component_name": "Name of the element/variable.",
+                  "value": "What's the value of that component? If there are more than 1 component just write their names and values in the same line" 
+                }},
+                "line_2": {{
+                  "component_name": "Name of the second element/variable if present.",
+                  "value": "What's the value of that second component?"
+                }}
+              }},
+              "output": {{
+                "target_output": "The expected output as per the problem statement (e.g., `Case #X: YES/NO`, integer result, etc.).",
+                "output_explanation": "Explain why these inputs lead to this specific output, considering the problem's constraints and logic."
+              }}
+            }},
+            ...
+          ]
         }}
       ],
       "test_case_reflection": {{
