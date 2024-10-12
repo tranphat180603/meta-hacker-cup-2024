@@ -32,7 +32,7 @@ def parse_args():
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
-    parser.add_argument("--show_coT", action='store_true', help="Show the Chain of Thought output for debugging.")
+    parser.add_argument("--show_coT", type=bool, default=False ,help="Show the Chain of Thought output for debugging.")
     return parser.parse_args()
 
 # Load the model and tokenizer
@@ -569,4 +569,4 @@ if __name__ == "__main__":
 
 
 # python r.py --code_iterations 30 --max_num_retry 10 
-# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 
+# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 --show_coT True
