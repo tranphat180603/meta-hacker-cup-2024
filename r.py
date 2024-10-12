@@ -83,7 +83,7 @@ def model_response(model, tokenizer, user_content, temperature=0.3, max_new_toke
     response = generate_response(model, tokenizer, messages, temperature=temperature, max_new_tokens=max_new_tokens)
     formatted_response = {"role": "assistant", "content": response}
     if show_coT:
-        print(f"Generated Response: {formatted_response['content']}")
+        print(f"Generated Response: {formatted_response['content']}", flush=True)
     return formatted_response["content"]
 
 

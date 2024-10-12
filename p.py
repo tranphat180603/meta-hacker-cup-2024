@@ -176,15 +176,24 @@ def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysi
     {{
       "ai_generated_test_cases": [
         {{
-          "test_case_1": {{
-            "input": "Input for test case 1",
-            "expected_output": "Expected output for test case 1"
-          }},
-          "test_case_2": {{
-            "input": "Input for test case 2",
-            "expected_output": "Expected output for test case 2"
-          }},
-          and so on...
+          "input": "Input for test case 1",
+          "expected_output": "Expected output for test case 1"
+        }},
+        {{
+          "input": "Input for test case 2",
+          "expected_output": "Expected output for test case 2"
+        }},
+        {{
+          "input": "Input for test case 3",
+          "expected_output": "Expected output for test case 3"
+        }},
+        {{
+          "input": "Input for test case 4",
+          "expected_output": "Expected output for test case 4"
+        }},
+        {{
+          "input": "Input for test case 5",
+          "expected_output": "Expected output for test case 5"
         }}
       ]
     }}
@@ -211,7 +220,6 @@ def get_solution_ideas_template(refine_problem_understanding, test_case_analysis
           "name": "Give the name or category of the first approach.",
           "strategy": "Explain the general strategy for this approach."
         }}
-        // Additional solution objects will be added here up to the requested number
       ]
     }}
     """
