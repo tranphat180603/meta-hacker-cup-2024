@@ -71,10 +71,12 @@ def analyze_original_test_cases_template(problem_description):
             "input": {{
               "line_1": {{
                 "component_name": "Name of the element/variable.",
-                "value": "What's the value of that component?" 
-                if there are more than 1 component just write their names and values in the same line  
+                "value": "What's the value of that component? If there are more than 1 component just write their names and values in the same line" 
               }},
-              create more if there are more than 1 line in a test case
+              "line_2": {{
+                "component_name": "Name of the second element/variable if present.",
+                "value": "What's the value of that second component?"
+              }}
             }},
             "output": {{
               "target_output": "The expected output as per the problem statement (e.g., `Case #X: YES/NO`, integer result, etc.).",
@@ -87,8 +89,7 @@ def analyze_original_test_cases_template(problem_description):
       "test_case_reflection": {{
         "key_observations": [
           "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem.
-          For example: after analysing the test case, it appears that both single and double cheese burgers have 2 buns.
-          "
+          Be as specific as possible. Your observation could be a formula, an algorithm or a chain of steps that lead to the result."
         ],
         "variable_roles": {{
           "variable_name": "Explain the role or significance of each variable in the problem, based on how it's used across test cases."
@@ -96,7 +97,7 @@ def analyze_original_test_cases_template(problem_description):
         "problem_solving_hints": [
           "Provide hints or guidelines for approaching the problem, based on insights from the test cases."
         ],
-        "general_formula": "If applicable, provide a general formula or approach for solving the problem, derived from analyzing the test cases.",
+        "general_formula": "If applicable, provide a general formula or approach for solving the problem, derived from analyzing the test cases."
       }}
     }}
     
