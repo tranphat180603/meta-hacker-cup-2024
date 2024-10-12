@@ -40,9 +40,9 @@ def parse_args():
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
-    # merged_model = PeftModel.from_pretrained(model, adapter_path)
+    merged_model = PeftModel.from_pretrained(model, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return model, tokenizer
+    return merged_model, tokenizer
 
 
 #Load model
