@@ -478,14 +478,14 @@ def run_full_process(problem_description, test_input, test_output ,code_iteratio
                 print(f"Perfect score achieved: {best_score}%")
                 return best_code, best_score
 
-            if error:  # Handle execution/runtime errors
-                new_code = retry(request_code_improvement_dte, max_num_retry, generated_code, error, show_coT=show_coT)
-                if show_coT:
-                    print(f"Execution error: {error}")
-            elif failed_cases:  # Handle failed test cases
+            if failed_cases:  # Handle failed test cases
                 new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, failed_cases, show_coT=show_coT)
                 if show_coT:
                     print(f"Logic error. Failed cases are: {failed_cases}")
+            else:  # Handle execution/runtime errors
+                new_code = retry(request_code_improvement_dte, max_num_retry, generated_code, error, show_coT=show_coT)
+                if show_coT:
+                    print(f"Execution error: {error}")
 
             new_code = new_code['solution_code']['code'] if new_code else generated_code
             generated_code = new_code
