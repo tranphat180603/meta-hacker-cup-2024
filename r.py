@@ -46,7 +46,7 @@ def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
 #Load model
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
 lora_path = "./adapter/"
-# model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
+model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
 print(f"USING MODEL: {model_name} with Lora adapter")
 
 # Apply chat template for all messages
@@ -258,7 +258,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        print("Step 1: Understanding problem:")
+        # print("Step 1: Understanding problem:")
         return model_response(model, tokenizer, get_problem_understanding_template(problem_description), system_prompt = """
         You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
         Produce only valid JSON based on the provided structure without extra text or explanations. 
@@ -528,7 +528,7 @@ def main():
             return
         else:
             problem_batches = [problem_cases]  
-            print(f"Total problem cases loaded: {len(problem_cases)}")
+            
     else:
         # Split problem cases into 4 batches for 4 GPUs
         num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
@@ -538,6 +538,7 @@ def main():
         # Ensure no empty batches
         problem_batches = [batch for batch in problem_batches if batch]  # Remove empty batches
         num_workers = len(problem_batches)  # Update the number of workers to match non-empty batches
+        print(f"Total problem cases loaded: {len(problem_cases)}")
 
     # Debugging: Print out how the problem cases are divided among GPUs
     for i, batch in enumerate(problem_batches):
