@@ -13,7 +13,7 @@ import subprocess
 import time
 import multiprocessing as mp  # Import multiprocessing
 import sys
-
+from peft import PeftModel, PeftConfig
 from p import (
     get_problem_understanding_template,
     analyze_original_test_cases_template,
@@ -30,15 +30,24 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
-    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).") 
+    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
+    parser.add_argument("--show_coT", action='store_true', help="Show the Chain of Thought output for debugging.")
     return parser.parse_args()
 
 # Load the model and tokenizer
-def load_model_and_tokenizer(model_name, temperature=0.3):
+def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
+    merged_model = PeftModel.from_pretrained(model, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return model, tokenizer
+    return merged_model, tokenizer
+
+
+#Load model
+model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+lora_path = "/meta-hacker-cup-2024/adapter/"
+model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
+print(f"USING MODEL: {model_name} with Lora adapter")
 
 # Apply chat template for all messages
 def apply_chat_template(tokenizer, messages):
@@ -61,24 +70,20 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
-#Load model
-model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model, tokenizer = load_model_and_tokenizer(model_name, temperature=0.3)
-print(f"USING MODEL: {model_name}")
-
-# Load dataset
-ds = load_dataset("hackercupai/hackercup")
 
 # Helper to parse response at each step
 def model_response(model, tokenizer, user_content, temperature=0.3, max_new_tokens=2048, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
+    global show_coT  # Use the global variable
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_content}
     ]
     response = generate_response(model, tokenizer, messages, temperature=temperature, max_new_tokens=max_new_tokens)
     formatted_response = {"role": "assistant", "content": response}
-    # print(f"Generated Response: {formatted_response['content']}")
+    if show_coT:
+        print(f"Generated Response: {formatted_response['content']}")
     return formatted_response["content"]
+
 
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
@@ -252,7 +257,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 def understanding_problem(problem_description): 
     try:
         # print("Step 1: Understanding problem:")
-        return model_response(model, tokenizer ,get_problem_understanding_template(problem_description), system_prompt = """
+        return model_response(model, tokenizer, get_problem_understanding_template(problem_description), system_prompt = """
         You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
         Produce only valid JSON based on the provided structure without extra text or explanations. 
         Maintain real-world logical consistency while interpreting the problem, and note any ambiguities or inconsistencies in the description. 
@@ -359,7 +364,7 @@ def request_code_improvement_dtfc(generated_code, failed_tests):  # Due to faile
         return None
 
 # Main function to run the process
-def run_full_process(problem_description, test_input, test_output, code_iterations=5, max_num_retry=5):
+def run_full_process(problem_description, test_input, test_output ,code_iterations=5, max_num_retry=5):
     try:
         # Step 1: Understand the problem
         understand = retry(understanding_problem, max_num_retry, problem_description)
@@ -433,7 +438,7 @@ def run_full_process(problem_description, test_input, test_output, code_iteratio
 
         # Step 8: Start the code iteration loop
         while attempts < code_iterations:
-            print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
+            # print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
             # Run the generated code
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
@@ -491,9 +496,11 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
     print(f"Finished processing on GPU {gpu_id}!")
 
 # Function to run the entire process using 4 GPUs
-# Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
+
+    global show_coT
+    show_coT = args.show_coT
 
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
@@ -519,7 +526,7 @@ def main():
             print(f"No problem found with the name '{args.problem_name}'")
             return
         else:
-            problem_batches = [problem_cases]  # Wrap it in a list to make it iterable
+            problem_batches = [problem_cases]  
     else:
         # Split problem cases into 4 batches for 4 GPUs
         num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
