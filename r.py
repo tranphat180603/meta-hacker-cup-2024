@@ -512,6 +512,7 @@ def main():
     global show_coT
     args = parse_args()
     show_coT = args.show_coT
+    print(show_coT)
 
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
@@ -579,4 +580,4 @@ if __name__ == "__main__":
 
 
 # python r.py --code_iterations 30 --max_num_retry 10 
-# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 --show_coT True
+# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 --show_coT
