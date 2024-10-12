@@ -453,7 +453,8 @@ def run_full_process(problem_description, test_input, test_output ,code_iteratio
 
         # Step 8: Start the code iteration loop
         while attempts < code_iterations:
-            # print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
+            if show_coT:
+                print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
             # Run the generated code
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 generated_code, test_input=test_input, test_output=test_output
@@ -471,10 +472,12 @@ def run_full_process(problem_description, test_input, test_output ,code_iteratio
 
             if error:  # Handle execution/runtime errors
                 new_code = retry(request_code_improvement_dte, max_num_retry, generated_code, error, show_coT=show_coT)
-                # print(error)
+                if show_coT:
+                    print(f"Execution error: {error}")
             elif failed_cases:  # Handle failed test cases
                 new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, failed_cases, show_coT=show_coT)
-                # print(failed_cases)
+                if show_coT:
+                    print(f"Logic error. Failed cases are: {failed_cases}")
 
             new_code = new_code['solution_code']['code'] if new_code else generated_code
             generated_code = new_code
