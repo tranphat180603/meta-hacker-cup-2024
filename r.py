@@ -513,8 +513,7 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
 # Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
-    show_coT = args.show_coT
-    print(f"1:{show_coT}")
+    print(f"1:{args.show_coT}")
 
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
@@ -566,7 +565,7 @@ def main():
             print(f"Skipping GPU {gpu_id} - no problems assigned.")
             continue
 
-        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
+        p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry, args.show_coT))
         processes.append(p)
         p.start()
 
