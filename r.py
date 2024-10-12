@@ -46,7 +46,7 @@ def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
 #Load model
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
 lora_path = "./adapter/"
-model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
+# model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
 print(f"USING MODEL: {model_name} with Lora adapter")
 
 # Apply chat template for all messages
@@ -70,11 +70,13 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
     response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
+
 #init a flag whether to print the response of model during the execution
 show_coT = False
 # Helper to parse response at each step
 def model_response(model, tokenizer, user_content, temperature=0.3, max_new_tokens=2048, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
     global show_coT  # Use the global variable
+    print(show_coT)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_content}
@@ -84,7 +86,6 @@ def model_response(model, tokenizer, user_content, temperature=0.3, max_new_toke
     if show_coT:
         print(f"Generated Response: {formatted_response['content']}")
     return formatted_response["content"]
-
 
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
@@ -257,7 +258,7 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
 
 def understanding_problem(problem_description): 
     try:
-        # print("Step 1: Understanding problem:")
+        print("Step 1: Understanding problem:")
         return model_response(model, tokenizer, get_problem_understanding_template(problem_description), system_prompt = """
         You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
         Produce only valid JSON based on the provided structure without extra text or explanations. 
@@ -270,7 +271,7 @@ def understanding_problem(problem_description):
 
 def analyze_test_cases(problem_description):
     try:
-        # print("Step 2: Analyzing test cases: ")
+        print("Step 2: Analyzing test cases: ")
         return model_response(model, tokenizer ,analyze_original_test_cases_template(problem_description), system_prompt = """
         You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
         Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
@@ -282,7 +283,7 @@ def analyze_test_cases(problem_description):
 
 def get_refine_understanding(problem_understanding, test_case_analysis):
     try:
-        # print("Step 3: Refine problem understandings: ")
+        print("Step 3: Refine problem understandings: ")
         return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis), system_prompt = """
         Refine the problem understanding by integrating insights from test case analysis. 
         Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
@@ -294,7 +295,7 @@ def get_refine_understanding(problem_understanding, test_case_analysis):
 
 def self_generate_test_cases(problem_description, test_case_analysis):
     try:
-        # print("Step 4: Generate more sample test cases")
+        print("Step 4: Generate more sample test cases")
         return model_response(model, tokenizer ,generate_ai_test_cases_prompt(problem_description, test_case_analysis), system_prompt = """
         You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
         Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
@@ -305,7 +306,7 @@ def self_generate_test_cases(problem_description, test_case_analysis):
 
 def generate_solution_ideas(problem_description, test_case_analysis, num_solutions):
     try:
-        # print("Step 5: Generate solutions")
+        print("Step 5: Generate solutions")
         return model_response(model, tokenizer ,get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), system_prompt = """
         As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
         Think outside the box while ensuring all solutions can pass the provided test cases.
@@ -515,19 +516,19 @@ def main():
     # Extract problem cases
     problem_cases = extract_problem_cases_with_io(ds)
 
-    # Debugging: Print out the total number of problems
-    print(f"Total problem cases loaded: {len(problem_cases)}")
 
     # Find a specific problem if given
     if args.problem_name:
         print(f"Finding specific problem: {args.problem_name}")
         problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
         num_workers = 1
+        print(f"Total problem cases loaded: 1")
         if not problem_cases:
             print(f"No problem found with the name '{args.problem_name}'")
             return
         else:
             problem_batches = [problem_cases]  
+            print(f"Total problem cases loaded: {len(problem_cases)}")
     else:
         # Split problem cases into 4 batches for 4 GPUs
         num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
@@ -552,7 +553,6 @@ def main():
             print(f"Skipping GPU {gpu_id} - no problems assigned.")
             continue
 
-        print(f"Spawning process for GPU {gpu_id} with {len(problem_batch)} problems.")
         p = mp.Process(target=process_problems_on_gpu, args=(gpu_id, problem_batch, args.code_iterations, args.max_num_retry))
         processes.append(p)
         p.start()
