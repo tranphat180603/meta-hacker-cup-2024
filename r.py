@@ -75,7 +75,6 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
 
 # Helper to parse response at each step
 def model_response(model, tokenizer, user_content, temperature=0.3, max_new_tokens=2048, system_prompt="You are a helpful assistant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
-    global show_coT  # Use the global variable
     print(f"2:{show_coT}")
 
     messages = [
