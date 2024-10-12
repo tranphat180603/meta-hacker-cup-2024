@@ -479,7 +479,7 @@ def run_full_process(problem_description, test_input, test_output ,code_iteratio
                 return best_code, best_score
 
             if failed_cases:  # Handle failed test cases
-                new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, failed_cases, show_coT=show_coT)
+                new_code = retry(request_code_improvement_dtfc, max_num_retry, generated_code, error, show_coT=show_coT)
                 if show_coT:
                     print(f"Logic error. Failed cases are: {failed_cases}")
             else:  # Handle execution/runtime errors
