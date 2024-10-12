@@ -172,6 +172,13 @@ def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysi
 
     generate 5 new AI-generated test cases. The goal is to observe patterns from the existing test cases and create new cases that are diverse and challenge different edge cases of the problem.
     
+    The output must always follow this example structure:
+    Case #1: YES
+    Case #2: NO
+    Case #3: YES
+    Case #4: NO
+    Case #5: NO
+    
     Provide the new test cases in the following JSON structure:
     {{
       "ai_generated_test_cases": [
@@ -278,6 +285,13 @@ Guidelines:
 3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
 4. Use the `if __name__ == "__main__":` block to run the solution.
 5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
+
+The output must always follow this example structure:
+Case #1: YES
+Case #2: NO
+Case #3: YES
+Case #4: NO
+Case #5: NO
 
 Provide the Python code in this JSON format:
 {{

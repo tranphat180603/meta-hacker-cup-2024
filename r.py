@@ -215,6 +215,7 @@ def compare_with_expected_output(generated_output, expected_output):
 
     generated_output_lines = generated_output.strip().splitlines()
     expected_output_lines = expected_output.strip().splitlines()
+    expected_output_lines = expected_output_lines.split(":")[-1]
 
     total_cases = len(expected_output_lines)
     matching_cases = 0
