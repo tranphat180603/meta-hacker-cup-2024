@@ -45,7 +45,7 @@ def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
 
 #Load model
 model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-lora_path = "/meta-hacker-cup-2024/adapter/"
+lora_path = "./adapter/"
 model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
 print(f"USING MODEL: {model_name} with Lora adapter")
 
