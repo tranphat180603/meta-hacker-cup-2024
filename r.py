@@ -41,14 +41,15 @@ def parse_args():
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
+    parser.add_argument("--lora", action="store_true", help="flag to use my fine-tuned version")
     return parser.parse_args()
 
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
-    merged_model = PeftModel.from_pretrained(model, adapter_path)
+    # merged_model = PeftModel.from_pretrained(model, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return merged_model, tokenizer
+    return model, tokenizer
 
 
 #Load model
