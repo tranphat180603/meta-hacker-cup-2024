@@ -560,17 +560,16 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                 generated_code, best_score = run_full_process(problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
                 if best_score > 0:
                     print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} passed with score {best_score}%")
-                file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
+                    file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
+                else:
+                    rint(f"Cannot find solution for problem {index}/{total_problems} on GPU {gpu_id} after {code_iterations} iterations")
+                    file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
             except Exception as e:
-                print(f"Cannot find solution for problem {index}/{total_problems} on GPU {gpu_id} after {code_iterations} iterations")
-                file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
-    print(f"Finished processing on GPU {gpu_id}!")
+                print("ERROR processing problems!")
 
 # Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
-    print(f"1:{args.show_coT}")
-
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
 
@@ -582,11 +581,13 @@ def main():
 
     # Extract problem cases
     if args.dataset_local_path: #handle local dataset (folder structured)
-        problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
+        problem_cases = [extract_problem_cases_from_folder(args.dataset_local_path)]
         num_workers = 1
         if args.local_ds_idx:
             problem_batches = [problem_cases[args.local_ds_idx]]
+            print(f"Finding specific problem: {problem_batches['name']}")
         else:
+            print("Processing all problems in the folder")
             problem_batches = [problem_cases]
 
     else: #handle hf dataset
@@ -614,9 +615,9 @@ def main():
             num_workers = len(problem_batches)  # Update the number of workers to match non-empty batches
             print(f"Total problem cases loaded: {len(problem_cases)}")
 
-    # Debugging: Print out how the problem cases are divided among GPUs
-    for i, batch in enumerate(problem_batches):
-        print(f"GPU {i} assigned {len(batch)} problems.")
+            # Debugging: Print out how the problem cases are divided among GPUs
+            for i, batch in enumerate(problem_batches):
+                print(f"GPU {i} assigned {len(batch)} problems.")
 
     # Spawn workers (one for each GPU)
     processes = []
@@ -647,3 +648,4 @@ if __name__ == "__main__":
 # python r.py --problem_name "lunch_at_facebook" --code_iterations 15 --max_num_retry 10 --show_coT
 
 #python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data" --local_ds_idx 4
+#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data"
