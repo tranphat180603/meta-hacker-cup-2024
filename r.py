@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
+    parser.add_argument("--dataset_local_path", type = str, default = "") #if specified, open dataset in local machine, problem is formatted the same as online dataset
     return parser.parse_args()
 
 # Load the model and tokenizer
@@ -88,7 +89,7 @@ def model_response(model, tokenizer, user_content, temperature=0.3, max_new_toke
 
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
-def extract_problem_cases_with_io(dataset):
+def extract_problem_cases_from_hf(dataset):
     problem_cases = []
     for example in dataset['full']:
         sample_input = example["sample_input"]
@@ -116,7 +117,38 @@ def extract_problem_cases_with_io(dataset):
         })
     return problem_cases
 
+def extract_problem_cases_from_folder(dataset_path):
+    problem_cases = []
+    
+    # Traverse the directory structure
+    for root, dirs, files in os.walk(dataset_path):
+        # Check if the required files are in the current directory
+        if 'statement.txt' in files and 'sample_in.txt' in files and 'sample_out.txt' in files:
+            # Read content from the necessary files
+            with open(os.path.join(root, 'statement.txt'), 'r') as statement_file:
+                statement = statement_file.read().strip()
+            
+            with open(os.path.join(root, 'sample_in.txt'), 'r') as sample_in_file:
+                sample_input = sample_in_file.read().strip()
+                
+            with open(os.path.join(root, 'sample_out.txt'), 'r') as sample_out_file:
+                sample_output = sample_out_file.read().strip()
+                
+            # Concatenate the information into a problem description
+            problem_description = f"""
+            {statement}
+            
+            ### Sample Input
+            {sample_input}
 
+            ### Sample Output
+            {sample_output}
+            """
+            
+            # Add the problem description to the list
+            problem_cases.append(problem_description)
+    
+    return problem_cases
 # Helper function to clean and parse JSON response
 def response_json(response_string):
     # If the response is already a dictionary, return it as is
@@ -527,7 +559,7 @@ def main():
 
     # Load dataset
     ds = load_dataset("hackercupai/hackercup")
-    
+
     # Set start method only once
     try:
         mp.set_start_method('spawn', force=True)
@@ -535,8 +567,10 @@ def main():
         print(f"Multiprocessing start method 'spawn' already set: {str(e)}")
 
     # Extract problem cases
-    problem_cases = extract_problem_cases_with_io(ds)
-
+    if args.dataset_local_path:
+        problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
+    else: 
+        problem_cases = extract_problem_cases_from_hf(ds)
 
     # Find a specific problem if given
     if args.problem_name:
@@ -591,4 +625,4 @@ if __name__ == "__main__":
 
 
 # python r.py --code_iterations 30 --max_num_retry 10 
-# python r.py --problem_name "cheeseburger_corollary_ch1" --code_iterations 15 --max_num_retry 10 --show_coT
+# python r.py --problem_name "lunch_at_facebook" --code_iterations 15 --max_num_retry 10 --show_coT
