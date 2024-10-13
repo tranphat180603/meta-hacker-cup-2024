@@ -588,7 +588,6 @@ def main():
             problem_batches = [problem_cases[args.local_ds_idx]]
         else:
             problem_batches = [problem_cases]
-        print(f"Problem test: {problem_batches}")
 
     else: #handle hf dataset
         problem_cases = extract_problem_cases_from_hf(ds)
