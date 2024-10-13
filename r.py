@@ -46,9 +46,9 @@ def parse_args():
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
-    # merged_model = PeftModel.from_pretrained(model, adapter_path)
+    merged_model = PeftModel.from_pretrained(model, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return model, tokenizer
+    return merged_model, tokenizer
 
 
 #Load model
@@ -647,5 +647,5 @@ if __name__ == "__main__":
 # python r.py --code_iterations 30 --max_num_retry 10 
 # python r.py --problem_name "lunch_at_facebook" --code_iterations 15 --max_num_retry 10 --show_coT
 
-#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data" --local_ds_idx 0
+#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data" --local_ds_idx 2
 #python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data"
