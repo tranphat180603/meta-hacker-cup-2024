@@ -574,6 +574,7 @@ def main():
     # Extract problem cases
     if args.dataset_local_path: #handle local dataset (folder structured)
         problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
+        num_workers = 1
         if args.local_ds_idx:
             problem_batches = [problem_cases[args.local_ds_idx]]
         else:
