@@ -283,7 +283,6 @@ Guidelines:
 1. Divide the code into small, well-named sub-functions, each no longer than 10 lines.
 2. Use Python's built-in `input()` function to handle input directly. Do not use `sys.stdin` or `input = sys.stdin.read`.
 3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
-4. Use the `if __name__ == "__main__":` block to run the solution.
 5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
 
 The output must always follow this example structure:
@@ -321,18 +320,16 @@ def iterate_execution_error(generated_code, error_message):
     Guidelines:
     1. Pinpoint the line of code that is causing the error and provide a clear fix.
     2. The fixed code must be robust and work for other input examples as well.
-    3. The fix should target only the problematic section while maintaining the original logic if valid.
     4. Divide the fixed code into small sub-functions, with meaningful names and functionality if necessary.
     5. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
     6. Ensure that the code correctly processes the `sample_input` and `sample_output`.
-    7. The 'code' field must use `if __name__ == "__main__":` to execute the final answer.
 
     Provide the Python code in the following JSON format:
     {{
       "solution_code": {{
         "language": "Python",
         "error_line": "The line that caused the error from the latest code",
-        "code": "Your improved Python code here.",
+        "code": "Your newly implemented Python code here.",
         "improvement": "Explain what was fixed, including specific references to line or logic changes that address the issue raised in the error message."
       }}
     }}
@@ -357,7 +354,6 @@ def iterate_failed_test_cases(generated_code, failed_tests):
     3. Divide the new code into small sub-functions, with meaningful names and functionality.
     4. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
     5. Ensure that the code correctly processes the `sample_input` and `sample_output`.
-    6. The 'code' field must use `if __name__ == "__main__":` to execute the final answer.
 
     Provide the Python code in the following JSON format:
     {{

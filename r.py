@@ -647,5 +647,5 @@ if __name__ == "__main__":
 # python r.py --code_iterations 30 --max_num_retry 10 
 # python r.py --problem_name "lunch_at_facebook" --code_iterations 15 --max_num_retry 10 --show_coT
 
-#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data" --local_ds_idx 4
+#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data" --local_ds_idx 0
 #python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data"
