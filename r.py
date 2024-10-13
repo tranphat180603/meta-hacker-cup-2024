@@ -33,9 +33,10 @@ def parse_args():
     parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
-    parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve.")
+    parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve for hf dataset")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
-    parser.add_argument("--dataset_local_path", type = str, default = "") #if specified, open dataset in local machine, problem is formatted the same as online dataset
+    parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
+    parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
     return parser.parse_args()
 
 # Load the model and tokenizer
@@ -567,33 +568,36 @@ def main():
         print(f"Multiprocessing start method 'spawn' already set: {str(e)}")
 
     # Extract problem cases
-    if args.dataset_local_path:
+    if args.dataset_local_path: #handle local dataset (folder structured)
         problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
-    else: 
-        problem_cases = extract_problem_cases_from_hf(ds)
-
-    # Find a specific problem if given
-    if args.problem_name:
-        print(f"Finding specific problem: {args.problem_name}")
-        problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
-        num_workers = 1
-        print(f"Total problem cases loaded: 1")
-        if not problem_cases:
-            print(f"No problem found with the name '{args.problem_name}'")
-            return
+        if args.local_ds_idx:
+            problem_batches = [problem_cases[args.local_ds_idx]]
         else:
-            problem_batches = [problem_cases]  
-            
-    else:
-        # Split problem cases into 4 batches for 4 GPUs
-        num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
-        batch_size = max(1, len(problem_cases) // num_workers)
-        problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
+            problem_batches = [problem_cases]
+    else: #handle hf dataset
+        problem_cases = extract_problem_cases_from_hf(ds)
+        # Find a specific problem if given
+        if args.problem_name:
+            print(f"Finding specific problem: {args.problem_name}")
+            problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+            num_workers = 1
+            print(f"Total problem cases loaded: 1")
+            if not problem_cases:
+                print(f"No problem found with the name '{args.problem_name}'")
+                return
+            else:
+                problem_batches = [problem_cases]  
+                
+        else:
+            # Split problem cases into 4 batches for 4 GPUs
+            num_workers = min(args.num_workers, 4)  # Limiting to 4 GPUs
+            batch_size = max(1, len(problem_cases) // num_workers)
+            problem_batches = [problem_cases[i:i + batch_size] for i in range(0, len(problem_cases), batch_size)]
 
-        # Ensure no empty batches
-        problem_batches = [batch for batch in problem_batches if batch]  # Remove empty batches
-        num_workers = len(problem_batches)  # Update the number of workers to match non-empty batches
-        print(f"Total problem cases loaded: {len(problem_cases)}")
+            # Ensure no empty batches
+            problem_batches = [batch for batch in problem_batches if batch]  # Remove empty batches
+            num_workers = len(problem_batches)  # Update the number of workers to match non-empty batches
+            print(f"Total problem cases loaded: {len(problem_cases)}")
 
     # Debugging: Print out how the problem cases are divided among GPUs
     for i, batch in enumerate(problem_batches):
