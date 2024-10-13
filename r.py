@@ -102,13 +102,13 @@ def extract_problem_cases_from_hf(dataset):
         
         # Format the problem description
         problem_description = f"""
-        {example['statement']}
+{example['statement']}
         
-        ### Sample Input
-        {sample_input}
+### Sample Input
+{sample_input}
 
-        ### Sample Output
-        {sample_output}
+### Sample Output
+{sample_output}
         """
 
         # Append the formatted problem description to the list of problems
@@ -122,11 +122,15 @@ def extract_problem_cases_from_hf(dataset):
         })
     return problem_cases
 
+
 def extract_problem_cases_from_folder(dataset_path):
     problem_cases = []
     
     # Traverse the directory structure
     for root, dirs, files in os.walk(dataset_path):
+        # Get the directory name (problem name)
+        problem_name = os.path.basename(root)
+        
         # Check if the required files are in the current directory
         if 'statement.txt' in files and 'sample_in.txt' in files and 'sample_out.txt' in files:
             # Read content from the necessary files
@@ -141,17 +145,22 @@ def extract_problem_cases_from_folder(dataset_path):
                 
             # Concatenate the information into a problem description
             problem_description = f"""
-            {statement}
+{statement}
             
-            ### Sample Input
-            {sample_input}
+### Sample Input
+{sample_input}
 
-            ### Sample Output
-            {sample_output}
+### Sample Output
+{sample_output}
             """
             
             # Add the problem description to the list
-            problem_cases.append(problem_description)
+            problem_cases.append({
+                "name": problem_name,  # The folder name is used as the problem name
+                "problem_description": problem_description,
+                "sample_input": sample_input,
+                "sample_output": sample_output
+            })
     
     return problem_cases
 # Helper function to clean and parse JSON response
