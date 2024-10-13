@@ -585,7 +585,7 @@ def main():
         num_workers = 1
         if args.local_ds_idx:
             problem_batches = [[problem_cases[args.local_ds_idx]]]
-            print(f"Finding specific problem: {problem_batches['name']}")
+            print(f"Finding specific problem: {problem_batches[0][0]['name']}")
         else:
             print("Processing all problems in the folder")
             problem_batches = [problem_cases]
