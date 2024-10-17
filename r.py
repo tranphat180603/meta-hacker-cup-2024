@@ -31,24 +31,40 @@ from p import (
 )
 
 
-# Tee class to write to both console and file
+import sys
+
 class Tee:
     def __init__(self, *files):
         self.files = files
+        self.closed = False
 
     def write(self, data):
-        for f in self.files:
-            f.write(data)
-            f.flush()
+        if not self.closed:
+            for f in self.files:
+                f.write(data)
+                f.flush()  # Write data immediately
 
     def flush(self):
-        for f in self.files:
-            f.flush()
+        if not self.closed:
+            for f in self.files:
+                f.flush()
 
-# WRITE LOG IN A TEXT FILE
-with open('output.txt', 'w') as f:
-    tee = Tee(sys.stdout, f)
-    sys.stdout = tee
+    def close(self):
+        if not self.closed:
+            for f in self.files:
+                f.close()
+            self.closed = True
+
+try:
+    with open('output.txt', 'w') as f:
+        tee = Tee(sys.stdout, f)
+        sys.stdout = tee
+        print("Writing to both the file and console.")
+except Exception as e:
+    print("An error occurred:", e)
+finally:
+    sys.stdout = sys.__stdout__  # Reset stdout to console
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
