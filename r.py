@@ -256,7 +256,7 @@ def check_code_structure(extracted_code):
 
 def run_extracted_code(extracted_code, test_input):
     # Check if the structure of the code is valid
-    # is_valid, error_message = check_code_structure(extracted_code)
+    is_valid, error_message = check_code_structure(extracted_code)
     
     # Output and Error containers
     output = io.StringIO()
@@ -272,18 +272,8 @@ def run_extracted_code(extracted_code, test_input):
         try:
             # Compile the code object
             code_obj = compile(extracted_code, '<string>', 'exec')
-            
-            # if is_valid:
-            #     # If `if __name__ == '__main__'` exists, use local scope simulating standalone script behavior
-            #     local_scope = {'__name__': '__main__'}
-            #     exec(code_obj, local_scope)
-            # else:
-            #     # Execute in the global scope if `if __name__ == '__main__'` is not present
-            #     exec(extracted_code)
-            global_scope = globals().copy()  # Prevent modification of the actual global scope
-            local_scope = {}  # Fresh local scope for the execution
-            
-            exec(code_obj, global_scope, local_scope)
+            local_scope = {'__name__': '__main__'}
+            exec(code_obj, local_scope)
 
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()

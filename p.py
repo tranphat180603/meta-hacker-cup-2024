@@ -283,7 +283,8 @@ Guidelines:
 1. Divide the code into small, well-named sub-functions, each no longer than 10 lines.
 2. Use Python's built-in `input()` function to handle input directly. Do not use `sys.stdin` or `input = sys.stdin.read`.
 3. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
-5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
+4. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
+5. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
 The output must always follow this example structure:
 Case #1: YES
@@ -309,9 +310,9 @@ def iterate_execution_error(generated_code, error_message):
     return f"""
     Task: The generated code has encountered the following execution or runtime issue: 
 
-    {error_message}. 
+    {error_message}.
 
-    Based on the latest code: 
+    Based on the latest code:
 
     '{generated_code}',
 
@@ -320,6 +321,7 @@ def iterate_execution_error(generated_code, error_message):
     Guidelines:
     1. Pinpoint the line of code that is causing the error and provide a clear fix.
     2. The fixed code must be robust and work for other input examples as well.
+    3. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
     4. Divide the fixed code into small sub-functions, with meaningful names and functionality if necessary.
     5. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
     6. Ensure that the code correctly processes the `sample_input` and `sample_output`.
@@ -333,7 +335,8 @@ def iterate_execution_error(generated_code, error_message):
         "improvement": "Explain what was fixed, including specific references to line or logic changes that address the issue raised in the error message."
       }}
     }}
-    """
+"""
+
 def iterate_failed_test_cases(generated_code, failed_tests):
     return f"""
     Task: The generated code has failed many test cases: 
@@ -354,6 +357,7 @@ def iterate_failed_test_cases(generated_code, failed_tests):
     3. Divide the new code into small sub-functions, with meaningful names and functionality.
     4. Never use `input = sys.stdin.read` or `sys.stdin` to read input. Always use the `input()` Python built-in function to handle input directly.
     5. Ensure that the code correctly processes the `sample_input` and `sample_output`.
+    6. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
     Provide the Python code in the following JSON format:
     {{
