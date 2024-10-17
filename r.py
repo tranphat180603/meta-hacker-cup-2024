@@ -34,37 +34,43 @@ from p import (
 
 import sys
 
+
 class Tee:
     def __init__(self, *files):
         self.files = files
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
         self.closed = False
 
     def write(self, data):
         if not self.closed:
+            self.stdout.write(data)
             for f in self.files:
                 f.write(data)
-                f.flush()  # Write data immediately
+            self.flush()
 
     def flush(self):
         if not self.closed:
+            self.stdout.flush()
             for f in self.files:
                 f.flush()
 
+    def __enter__(self):
+        sys.stdout = self
+        sys.stderr = self
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def close(self):
         if not self.closed:
+            sys.stdout = self.stdout
+            sys.stderr = self.stderr
             for f in self.files:
-                f.close()
+                if not f.closed:
+                    f.close()
             self.closed = True
-
-try:
-    with open('output.txt', 'w') as f:
-        tee = Tee(sys.stdout, f)
-        sys.stdout = tee
-        print("Writing to both the file and console.")
-except Exception as e:
-    print("An error occurred:", e)
-finally:
-    sys.stdout = sys.__stdout__  # Reset stdout to console
 
 
 def parse_args():
@@ -617,36 +623,38 @@ def process_problems_sequentially(problem_cases, code_iterations, max_num_retry,
                 file.flush()
 
 def main():
-    args = parse_args()
+    with open('output.txt', 'w') as f, Tee(f):
 
-    # Extract problem cases
-    if args.dataset_local_path:  # handle local dataset (folder structured)
-        problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
-        if args.local_ds_idx is not None:
-            problem_cases = [problem_cases[args.local_ds_idx]]
-            print(f"Processing specific problem: {problem_cases[0]['name']}")
-        else:
-            print(f"Processing all {len(problem_cases)} problems in the folder")
-    else:  # handle hf dataset
-        ds = load_dataset("hackercupai/hackercup")
-        problem_cases = extract_problem_cases_from_hf(ds)
-        if args.problem_name:
-            problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
-            if not problem_cases:
-                print(f"No problem found with the name '{args.problem_name}'")
-                return
-            print(f"Processing specific problem: {problem_cases[0]['name']}")
-        else:
-            print(f"Processing all {len(problem_cases)} problems from the dataset")
+        args = parse_args()
 
-    # Determine the number of available GPUs
-    num_gpus = min(torch.cuda.device_count(), args.num_workers)
-    print(f"Using {num_gpus} GPU(s)")
+        # Extract problem cases
+        if args.dataset_local_path:  # handle local dataset (folder structured)
+            problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
+            if args.local_ds_idx is not None:
+                problem_cases = [problem_cases[args.local_ds_idx]]
+                print(f"Processing specific problem: {problem_cases[0]['name']}")
+            else:
+                print(f"Processing all {len(problem_cases)} problems in the folder")
+        else:  # handle hf dataset
+            ds = load_dataset("hackercupai/hackercup")
+            problem_cases = extract_problem_cases_from_hf(ds)
+            if args.problem_name:
+                problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+                if not problem_cases:
+                    print(f"No problem found with the name '{args.problem_name}'")
+                    return
+                print(f"Processing specific problem: {problem_cases[0]['name']}")
+            else:
+                print(f"Processing all {len(problem_cases)} problems from the dataset")
 
-    # Process problems sequentially
-    process_problems_sequentially(problem_cases, args.code_iterations, args.max_num_retry, args.show_coT, num_gpus)
+        # Determine the number of available GPUs
+        num_gpus = min(torch.cuda.device_count(), args.num_workers)
+        print(f"Using {num_gpus} GPU(s)")
 
-    print("All processing finished.")
+        # Process problems sequentially
+        process_problems_sequentially(problem_cases, args.code_iterations, args.max_num_retry, args.show_coT, num_gpus)
+
+        print("All processing finished.")
 
 if __name__ == "__main__":
     main()
