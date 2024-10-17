@@ -31,6 +31,24 @@ from p import (
 )
 
 
+# Tee class to write to both console and file
+class Tee:
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, data):
+        for f in self.files:
+            f.write(data)
+            f.flush()
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
+
+# WRITE LOG IN A TEXT FILE
+with open('output.txt', 'w') as f:
+    tee = Tee(sys.stdout, f)
+    sys.stdout = tee
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
@@ -53,7 +71,7 @@ def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
 
 
 #Load model
-model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+model_name = "Qwen/Qwen2.5-72B"
 lora_path = "./adapter/"
 model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
 print(f"USING MODEL: {model_name}")
@@ -565,7 +583,7 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
                     print(f"Problem {index}/{total_problems} on GPU {gpu_id}: {problem['name']} passed with score {best_score}%")
                     file.write(f"Problem {index}/{total_problems}: {problem['name']}, Score: {best_score}%\n")
                 else:
-                    rint(f"Cannot find solution for problem {index}/{total_problems} on GPU {gpu_id} after {code_iterations} iterations")
+                    print(f"Cannot find solution for problem {index}/{total_problems} on GPU {gpu_id} after {code_iterations} iterations")
                     file.write(f"Problem {index}/{total_problems}: {problem['name']}, Error: {str(e)}\n")
             except Exception as e:
                 print("ERROR processing problems!")
@@ -573,8 +591,6 @@ def process_problems_on_gpu(gpu_id, problem_batch, code_iterations, max_num_retr
 # Function to run the entire process using 4 GPUs
 def main():
     args = parse_args()
-    # Load dataset
-    ds = load_dataset("hackercupai/hackercup")
 
     # Set start method only once
     try:
@@ -594,6 +610,8 @@ def main():
             problem_batches = [problem_cases]
 
     else: #handle hf dataset
+        # Load dataset
+        ds = load_dataset("hackercupai/hackercup")
         problem_cases = extract_problem_cases_from_hf(ds)
         # Find a specific problem if given
         if args.problem_name:
