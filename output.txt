@@ -1,0 +1,8 @@
+Processing all 5 problems in the folder
+Using 1 GPU(s)
+Processing problems:   0%|          | 0/5 [00:00<?, ?problem/s]
+Running problem 1/5 on GPU 0: Fall in Line
+Problem 1/5: Fall in Line, Score: 33.33333333333333%
+Processing problems:  20%|##        | 1/5 [04:13<16:53, 253.47s/problem]
+Running problem 2/5 on GPU 0: Line by Line
+Processing problems:  20%|##        | 1/5 [06:51<27:27, 411.85s/problem]
