@@ -80,6 +80,7 @@ def parse_args():
     parser.add_argument("--num_workers", type=int, default=1, help="Number of parallel workers (equal to the number of GPUs).")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve for hf dataset")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
+    parser.add_argument("--out", type=str, default=None, help = "store coT")
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
     parser.add_argument("--lora", action="store_true", help="flag to use my fine-tuned version")
@@ -617,9 +618,8 @@ def process_problems_sequentially(problem_cases, code_iterations, max_num_retry,
                 file.flush()
 
 def main():
-    with open('output.txt', 'w') as f, Tee(f):
-
-        args = parse_args()
+    args = parse_args()
+    with open(args.out, 'w') as f, Tee(f):
 
         # Extract problem cases
         if args.dataset_local_path:  # handle local dataset (folder structured)
@@ -655,3 +655,5 @@ if __name__ == "__main__":
 
 
 # python r.py --code_iterations 15 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT
+
+#python r.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
