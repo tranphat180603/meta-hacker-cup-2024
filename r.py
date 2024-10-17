@@ -87,7 +87,7 @@ def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
 
 
 #Load model
-model_name = "Qwen/Qwen2.5-72B"
+model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
 lora_path = "./adapter/"
 model, tokenizer = load_model_and_tokenizer(model_name,lora_path,temperature=0.3)
 print(f"USING MODEL: {model_name}")
@@ -685,4 +685,4 @@ if __name__ == "__main__":
 # python r.py --problem_name "lunch_at_facebook" --code_iterations 15 --max_num_retry 10 --show_coT
 
 #python r.py --code_iterations 15 --max_num_retry 1 --show_coT --dataset_local_path "contest_data" --local_ds_idx 2
-#python r.py --code_iterations 15 --max_num_retry 5 --show_coT --dataset_local_path "contest_data"
+#python r.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data"
