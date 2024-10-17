@@ -280,7 +280,10 @@ def run_extracted_code(extracted_code, test_input):
             # else:
             #     # Execute in the global scope if `if __name__ == '__main__'` is not present
             #     exec(extracted_code)
-            exec(code_obj, globals(), locals())
+            global_scope = globals().copy()  # Prevent modification of the actual global scope
+            local_scope = {}  # Fresh local scope for the execution
+            
+            exec(code_obj, global_scope, local_scope)
 
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -659,3 +662,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# python r.py --code_iterations 15 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT
