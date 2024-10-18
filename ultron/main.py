@@ -31,8 +31,6 @@ from executor import(
     evaluate_generated_code_on_test_cases
 )
 
-model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-model, tokenizer = load_model_and_tokenizer(model_name)
 
 class Tee:
     def __init__(self, *files):
@@ -73,14 +71,14 @@ class Tee:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
-    parser.add_argument("--code_iterations", type=int, default=5, help="Number of code improvement iterations.")
-    parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
-    parser.add_argument("--num_workers", type=int, default=4, help="Number of parallel workers (equal to the number of GPUs).")
+    parser.add_argument("--code_iterations", type=int, default=15, help="Number of code improvement iterations.")
+    parser.add_argument("--max_num_retry", type=int, default=10, help="Maximum number of retries for model responses.")
+    parser.add_argument("--num_workers", type=int, default=1, help="Number of parallel workers (equal to the number of GPUs).")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve for hf dataset")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
-    parser.add_argument("--lora", action="store_true", help="flag to use my fine-tuned version")
+    parser.add_argument("--fine_tuned", action="store_true", help="flag to use my fine-tuned version. Currently supporting Qwen 2.5 7B")
     return parser.parse_args()
 
 
@@ -104,6 +102,7 @@ def response_json(response_string):
     except json.JSONDecodeError as e:
         # print(f"Error decoding JSON")
         return None  # Return None if parsing fails
+
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
     attempts = 0
@@ -261,10 +260,10 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         return None, 0
 
 
-def process_problems_sequentially(problem_cases, code_iterations, max_num_retry, show_coT):
+def process_problems_sequentially(model, tokenizer, problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
     
-    with open('results.txt', 'w') as file:
+    with open('results.txt', 'w') as file, Tee(file):
         for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
             try:
                 print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
@@ -272,27 +271,29 @@ def process_problems_sequentially(problem_cases, code_iterations, max_num_retry,
                 input_data = problem["sample_input"]
                 expected_output = problem["sample_output"]
                 
-                generated_code, best_score = run_full_process(problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
+                generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
                 
                 if best_score > 0:
                     result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
                 else:
                     result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations"
-                
                 print(result)
-                file.write(result + '\n')
-                file.flush()  # Ensure the result is written immediately
-                
             except Exception as e:
                 error_msg = f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}"
                 print(error_msg)
-                file.write(error_msg + '\n')
-                file.flush()
 
 def main():
+    #init arguments
     args = parse_args()
+    #init model
+    base_model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+    adapter_path = ".adapter/" 
+    model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_path, lora=args.fine_tuned)
     with open(args.out, 'w') as f, Tee(f):
-
+        if args.fine_tuned:
+            print(f"Using model: {base_model_name} with Lora adapter fine_tuned by Phat")
+        else:
+            print(f"Using model: {base_model_name}")
         # Extract problem cases
         if args.dataset_local_path:  # handle local dataset (folder structured)
             if args.local_ds_idx is not None:
@@ -314,7 +315,7 @@ def main():
                 print(f"Processing all {len(problem_cases)} problems from the dataset")
 
         # Process problems sequentially
-        process_problems_sequentially(problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
+        process_problems_sequentially(model, tokenizer,problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
 
         print("All processing finished.")
 

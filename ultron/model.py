@@ -20,10 +20,12 @@ from model import (
 )
 
 # Load the model and tokenizer
-def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3):
+def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3, lora = False):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
-    # merged_model = PeftModel.from_pretrained(model, adapter_path)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if lora:
+        merged_model = PeftModel.from_pretrained(model, adapter_path)
+        return merged_model, tokenizer
     return model, tokenizer
 
 
