@@ -1,38 +1,25 @@
-import os
 import json
-import contextlib
-import io
 from unittest.mock import patch
 import time
 import re
-import traceback
-
+import tqdm
 import argparse
-import subprocess
 import time
-import multiprocessing as mp  # Import multiprocessing
 import sys
 
 from datasets import load_dataset
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel, PeftConfig
-
-from prompts import (
-    get_problem_understanding_template,
-    analyze_original_test_cases_template,
-    generate_ai_test_cases_prompt,
-    get_solution_ideas_template,
-    evaluate_solutions_template,
-    get_code_generation_template,
-    iterate_execution_error,
-    refine_problem_understanding_template,
-    iterate_failed_test_cases
-)
 
 from model import (
     load_model_and_tokenizer,
-    generate_response
+    understanding_problem,
+    analyze_test_cases,
+    get_refine_understanding,
+    self_generate_test_cases,
+    generate_solution_ideas,
+    evaluate_solutions_f,
+    generate_python_code,
+    request_code_improvement_dte,
+    request_code_improvement_dtfc
 )
 
 from dataloader import(
@@ -44,6 +31,8 @@ from executor import(
     evaluate_generated_code_on_test_cases
 )
 
+model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+model, tokenizer = load_model_and_tokenizer(model_name)
 
 class Tee:
     def __init__(self, *files):
@@ -134,125 +123,6 @@ def retry(func, max_attempts, *args, **kwargs):
         attempts += 1
     
     return None  # Return None to signal failure
-
-#call response
-def understanding_problem(model, tokenizer, problem_description, show_coT=False): 
-    try:
-        if show_coT:
-            print("Step 1: Understanding problem:")
-        return model_response(model, tokenizer, get_problem_understanding_template(problem_description), show_coT=show_coT ,system_prompt = """
-        You are an AI assistant specializing in analyzing and structuring programming problem descriptions. 
-        Produce only valid JSON based on the provided structure without extra text or explanations. 
-        Maintain real-world logical consistency while interpreting the problem, and note any ambiguities or inconsistencies in the description. 
-        (For example: a pair of chopsticks can't be 1 chopstick, a dog can't have 3 legs)
-        """, temperature = 0.3)
-    except Exception as e:
-        print(f"Error in understanding_problem: {str(e)}")
-        return None
-
-def analyze_test_cases(model, tokenizer, problem_description, show_coT=False):
-    try:
-        if show_coT:
-            print("Step 2: Analyzing test cases: ")
-        return model_response(model, tokenizer ,analyze_original_test_cases_template(problem_description),show_coT=show_coT ,system_prompt = """
-        You are a specialized assistant tasked with analyzing original test cases from a given problem description. 
-        Your job is to extract the input and output format, map each component to its corresponding variable, and explain how the inputs lead to the output. 
-        Produce only valid JSON based on the provided structure without extra text or explanations.
-        """)
-    except Exception as e:
-        print(f"Error in analyze_test_cases: {str(e)}")
-        return None
-
-def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, show_coT=False):
-    try:
-        if show_coT:
-            print("Step 3: Refine problem understandings: ")
-        return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis),show_coT=show_coT ,system_prompt = """
-        Refine the problem understanding by integrating insights from test case analysis. 
-        Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
-        Provide the refined understanding in valid JSON format only.
-        """, temperature = 0.2)
-    except Exception as e:
-        print(f"Error in analyze_test_cases: {str(e)}")
-        return None
-
-def self_generate_test_cases(model, tokenizer, problem_description, test_case_analysis, show_coT=False):
-    try:
-        if show_coT:
-            print("Step 4: Generate more sample test cases")
-        return model_response(model, tokenizer ,generate_ai_test_cases_prompt(problem_description, test_case_analysis), show_coT=show_coT,system_prompt = """
-        You are an AI test case generator. Your task is to produce diverse and challenging test cases, including edge cases, based on the provided problem description and analysis.
-        Ensure your output strictly follows the requested JSON structure, without adding any extra text or explanations.
-        """)
-    except Exception as e:
-        print(f"Error in self_generate_test_cases: {str(e)}")
-        return None
-
-def generate_solution_ideas(model, tokenizer, problem_description, test_case_analysis, num_solutions, show_coT=False):
-    try:
-        if show_coT:
-            print("Step 5: Generate solutions")
-        return model_response(model, tokenizer ,get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), show_coT=show_coT,system_prompt = """
-        As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
-        Think outside the box while ensuring all solutions can pass the provided test cases.
-        Aim for a mix of conventional and novel approaches, considering efficiency, scalability, and unique algorithmic techniques.
-        """, temperature = 0.8)
-    except Exception as e:
-        print(f"Error in generate_solution_ideas: {str(e)}")
-        return None
-
-def evaluate_solutions_f(model, tokenizer, solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty, show_coT=False):
-    try:
-        if show_coT:        
-            print("Step 6: Evaluating solutions: ")
-        return model_response(model, tokenizer ,evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), show_coT=show_coT,system_prompt = """
-        Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
-        Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
-        Provide a concise, objective assessment in the specified JSON format only.
-        """, temperature = 0.4)
-    except Exception as e:
-        print(f"Error in evaluate_solutions_f: {str(e)}")
-        return None
-
-def generate_python_code(model, tokenizer, selected_solution, test_case_analysis, show_coT=False):
-    try:
-        if show_coT:       
-            print("Step 7: First python code: ")
-        return model_response(model, tokenizer ,get_code_generation_template(selected_solution, test_case_analysis), show_coT=show_coT,system_prompt = """
-        You are tasked with generating Python code for the selected solution that passed all test cases. 
-        Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
-        Ensure the output is strictly in the specified JSON format without any extra text or explanations.
-        """, temperature=0.2)
-    except Exception as e:
-        print(f"Error in generate_python_code: {str(e)}")
-        return None
-
-def request_code_improvement_dte(model, tokenizer, generated_code, error_message, show_coT=False):  # Due to error (execution/runtime issue)
-    try:
-        if show_coT:
-            print("Step 8.1: Iterating on execution error: ")
-        return model_response(model, tokenizer ,iterate_execution_error(generated_code, error_message), show_coT=show_coT,system_prompt="""
-        You are tasked with modifying and improving Python code to fix a specific execution or runtime error based on the provided error message. 
-        Focus on addressing the issue at the indicated line and provide the improved code. 
-        Ensure the output is in valid JSON format without any additional text, explanations, or comments.
-        """)
-    except Exception as e:
-        print(f"Error in request_code_improvement_dte: {str(e)}")
-        return None
-
-
-def request_code_improvement_dtfc(model, tokenizer, generated_code, failed_tests, show_coT=False):  # Due to failed cases (logic/approach issue)
-    try:
-        if show_coT:
-            print("Step 8.2: Iterating on failed test cases: ")
-        return model_response(model, tokenizer ,iterate_failed_test_cases(generated_code, failed_tests), show_coT=show_coT,system_prompt="""
-        Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
-        Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
-        Return only the new, complete solution in valid JSON format, without explanations or comments.
-        """, temperature=0.9)
-    except Exception as e:
-        print(f"Error in request_code_improvement_dtfc: {str(e)}")
-        return None
 
 # Main function to run the process
 def run_full_process(model, tokenizer,problem_description, test_input, test_output ,code_iterations=5, max_num_retry=5, show_coT=False):
@@ -391,16 +261,13 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         return None, 0
 
 
-def process_problems_sequentially(problem_cases, code_iterations, max_num_retry, show_coT, num_gpus):
+def process_problems_sequentially(problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
     
     with open('results.txt', 'w') as file:
         for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
-            gpu_id = index % num_gpus  # Cycle through available GPUs
-            torch.cuda.set_device(gpu_id)
-            
             try:
-                print(f"\nRunning problem {index + 1}/{total_problems} on GPU {gpu_id}: {problem['name']}")
+                print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
                 problem_description = problem["problem_description"]
                 input_data = problem["sample_input"]
                 expected_output = problem["sample_output"]
@@ -428,12 +295,12 @@ def main():
 
         # Extract problem cases
         if args.dataset_local_path:  # handle local dataset (folder structured)
-            problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
             if args.local_ds_idx is not None:
                 problem_cases = [problem_cases[args.local_ds_idx]]
                 print(f"Processing specific problem: {problem_cases[0]['name']}")
             else:
                 print(f"Processing all {len(problem_cases)} problems in the folder")
+                problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
         else:  # handle hf dataset
             ds = load_dataset("hackercupai/hackercup")
             problem_cases = extract_problem_cases_from_hf(ds)
@@ -447,7 +314,7 @@ def main():
                 print(f"Processing all {len(problem_cases)} problems from the dataset")
 
         # Process problems sequentially
-        process_problems_sequentially(problem_cases, args.code_iterations, args.max_num_retry, args.show_coT, num_gpus)
+        process_problems_sequentially(problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
 
         print("All processing finished.")
 

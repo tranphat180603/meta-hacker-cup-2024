@@ -1,4 +1,3 @@
-from datasets import load_dataset
 import os
 
 # Extract problem cases and include sample_input and sample_output in the problem_description

@@ -1,9 +1,8 @@
-import os
+import io
 from unittest.mock import patch
-import time
-import re
 import traceback
 import sys
+import contextlib
 
 
 def check_code_structure(extracted_code):
