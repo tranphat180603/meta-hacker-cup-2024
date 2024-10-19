@@ -288,7 +288,7 @@ def main():
     args = parse_args()
     #init model
     base_model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-    adapter_path = "./adapter/"
+    adapter_path = "../adapter/"
     model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_path, lora=args.fine_tuned)
     with open(args.out, 'w') as f, Tee(f):
         if args.fine_tuned:
