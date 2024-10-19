@@ -89,7 +89,7 @@ def compare_with_expected_output(generated_output, expected_output):
 # Evaluate generated code on test cases
 def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_output):
     # Run the code and get the output
-    generated_output, error = run_extracted_code(extracted_code, test_input)
+    generated_output, error = run_extracted_code_with_timeout(extracted_code, test_input)
     
     if generated_output is None or generated_output.strip() == "":
         return 0, error or "Error: The code ran without any problem. There's no error in parsing the input. But it produces no output. Please check the entire code again.", generated_output, []
