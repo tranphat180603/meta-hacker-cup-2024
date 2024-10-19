@@ -79,6 +79,7 @@ def parse_args():
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
     parser.add_argument("--fine_tuned", action="store_true", help="flag to use my fine-tuned version. Currently supporting Qwen 2.5 7B")
+    parser.add_argument("--out", type = str, default = "output.txt", help = "log C-O-T to a text file") 
     return parser.parse_args()
 
 
@@ -326,3 +327,5 @@ if __name__ == "__main__":
 # python r.py --code_iterations 15 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT
 
 #python r.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
+
+#python r.py problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
