@@ -283,9 +283,9 @@ def process_problems_sequentially(model, tokenizer, problem_cases, code_iteratio
         except Exception as e:
             error_msg = f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}"
 
-            with open('results.txt', 'w') as file, Tee(file):
-                print(result)
-                print(error_msg)
+        with open('results.txt', 'w') as file, Tee(file):
+            print(result)
+            print(error_msg)
 
 def main():
     #init arguments
