@@ -79,7 +79,8 @@ def parse_args():
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
     parser.add_argument("--fine_tuned", action="store_true", help="flag to use my fine-tuned version. Currently supporting Qwen 2.5 7B")
-    parser.add_argument("--out", type = str, default = "output.txt", help = "log C-O-T to a text file") 
+    parser.add_argument("--out", type = str, default = "output.txt", help = "log C-O-T to a text file")
+    parser.add_argument("--model_name", type = str, default = None, help = "model name from hf") 
     return parser.parse_args()
 
 
@@ -265,7 +266,8 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
 def process_problems_sequentially(model, tokenizer, problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
-    error_msg = ""
+    error_msg = []
+    result = []
     for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
         try:
             print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
@@ -276,22 +278,24 @@ def process_problems_sequentially(model, tokenizer, problem_cases, code_iteratio
             generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
             
             if best_score > 0:
-                result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
+                result.append(f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%")
             else:
-                result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations"
+                result.append(f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations")
 
         except Exception as e:
-            error_msg = f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}"
+            error_msg.append(f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}")
 
         with open('results.txt', 'w') as file, Tee(file):
-            print(result)
-            print(error_msg)
+            for ex in result:
+                print(ex)
+            for err in error_msg:
+                print(error_msg)
 
 def main():
     #init arguments
     args = parse_args()
     #init model
-    base_model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
+    base_model_name = args.model_name
     adapter_path = "../adapter/"
     model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_path, lora=args.fine_tuned)
     with open(args.out, 'w') as f, Tee(f):
