@@ -18,6 +18,7 @@ set_seed(88)
 
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3, lora = False):
+    assert model_name is not None, "Must specify model_name"
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     if lora:
