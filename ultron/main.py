@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch
 import time
 import re
-import tqdm
+from tqdm import tqdm
 import argparse
 import time
 import sys
