@@ -288,7 +288,7 @@ def main():
     args = parse_args()
     #init model
     base_model_name = "Qwen/Qwen2.5-Coder-7B-Instruct"
-    adapter_path = ".adapter/" 
+    adapter_path = "./adapter/"
     model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_path, lora=args.fine_tuned)
     with open(args.out, 'w') as f, Tee(f):
         if args.fine_tuned:
@@ -328,4 +328,4 @@ if __name__ == "__main__":
 
 #python main.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
 
-#python main.py problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
+#python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
