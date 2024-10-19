@@ -118,7 +118,7 @@ def retry(func, max_attempts, *args, **kwargs):
             if parsed_response is not None and isinstance(parsed_response, dict):
                 return parsed_response
         except Exception as e:
-            print("Error at function retry")
+            print(f"Error at function retry: {e}")
 
         attempts += 1
     
@@ -329,3 +329,4 @@ if __name__ == "__main__":
 #python main.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
 
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
+#python main.py --problem_name "cheeseburger_corollary_ch1" --show_coT
