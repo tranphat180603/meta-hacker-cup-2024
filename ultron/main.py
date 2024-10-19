@@ -324,8 +324,8 @@ if __name__ == "__main__":
     main()
 
 
-# python r.py --code_iterations 15 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT
+# python main.py --code_iterations 15 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT
 
-#python r.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
+#python main.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
 
-#python r.py problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
+#python main.py problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT

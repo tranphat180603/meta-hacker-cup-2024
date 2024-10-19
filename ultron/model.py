@@ -15,10 +15,6 @@ from prompts import (
 )
 
 
-from model import (
-    model_response
-)
-
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3, lora = False):
     model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
