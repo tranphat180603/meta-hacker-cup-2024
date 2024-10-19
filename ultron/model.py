@@ -155,11 +155,11 @@ def generate_python_code(model, tokenizer, selected_solution, test_case_analysis
         print(f"Error in generate_python_code: {str(e)}")
         return None
 
-def request_code_improvement_dte(model, tokenizer, generated_code, error_message, show_coT=False):  # Due to error (execution/runtime issue)
+def request_code_improvement_dte(model, tokenizer, generated_code, error_message,analysis ,show_coT=False):  # Due to error (execution/runtime issue)
     try:
         if show_coT:
             print("Step 8.1: Iterating on execution error: ")
-        return model_response(model, tokenizer ,iterate_execution_error(generated_code, error_message), show_coT=show_coT,system_prompt="""
+        return model_response(model, tokenizer ,iterate_execution_error(generated_code, analysis ,error_message), show_coT=show_coT,system_prompt="""
         You are tasked with modifying and improving Python code to fix a specific execution or runtime error based on the provided error message. 
         Focus on addressing the issue at the indicated line and provide the improved code. 
         Ensure the output is in valid JSON format without any additional text, explanations, or comments.
@@ -169,11 +169,11 @@ def request_code_improvement_dte(model, tokenizer, generated_code, error_message
         return None
 
 
-def request_code_improvement_dtfc(model, tokenizer, generated_code, failed_tests, show_coT=False):  # Due to failed cases (logic/approach issue)
+def request_code_improvement_dtfc(model, tokenizer, generated_code, failed_tests, analysis ,show_coT=False):  # Due to failed cases (logic/approach issue)
     try:
         if show_coT:
             print("Step 8.2: Iterating on failed test cases: ")
-        return model_response(model, tokenizer ,iterate_failed_test_cases(generated_code, failed_tests), show_coT=show_coT,system_prompt="""
+        return model_response(model, tokenizer ,iterate_failed_test_cases(generated_code, analysis ,failed_tests), show_coT=show_coT,system_prompt="""
         Analyze the provided Python code and failed test cases to develop a fundamentally new approach. 
         Prioritize creating an entirely different solution that addresses all test cases, rather than patching the existing code.
         Return only the new, complete solution in valid JSON format, without explanations or comments.
