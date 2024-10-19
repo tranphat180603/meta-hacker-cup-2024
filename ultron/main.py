@@ -265,7 +265,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
 def process_problems_sequentially(model, tokenizer, problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
-    
+    error_msg = ""
     for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
         try:
             print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
