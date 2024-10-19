@@ -102,7 +102,7 @@ def response_json(response_string):
         return parsed_json
     except json.JSONDecodeError as e:
         # print(f"Error decoding JSON")
-        return None  # Return None if parsing fails
+        return e  # Return None if parsing fails
 
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
@@ -110,13 +110,15 @@ def retry(func, max_attempts, *args, **kwargs):
     result = None
 
     while attempts < max_attempts:
-        # print(f"Attempt: {attempts + 1}")
+        print(f"Parsing JSON attempts: #{attempts + 1}")
         try:
             raw_response = func(*args, **kwargs)
             parsed_response = response_json(raw_response)
             
             if parsed_response is not None and isinstance(parsed_response, dict):
                 return parsed_response
+            else:
+                print(f"Error parsing json with this e: {parsed_response}")
         except Exception as e:
             print(f"Error at function retry: {e}")
 

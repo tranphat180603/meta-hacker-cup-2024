@@ -21,7 +21,7 @@ def timeout_handler(signum, frame):
         "Please review the code for potential errors or inefficiencies that could cause it to run indefinitely or take an excessive amount of time."
     )
 
-def run_extracted_code_with_timeout(extracted_code, test_input, timeout=5):
+def run_extracted_code_with_timeout(extracted_code, test_input, timeout=20):
     # Check code structure first
     is_valid, error_message = check_code_structure(extracted_code)
     if not is_valid:
