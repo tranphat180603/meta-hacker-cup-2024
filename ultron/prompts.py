@@ -349,7 +349,7 @@ Provide the Python code in the following JSON format:
 
 def iterate_failed_test_cases(generated_code, failed_tests, test_case_analysis):
     return f"""
-Task: The generated code has failed many test cases: 
+Task: The generated code has failed these test cases: 
 
 {failed_tests}. 
 
@@ -370,18 +370,31 @@ You must follow the instructions below:
     6. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
   B. Improvement guidelines:
-    1. The input/output and can not be wrong. If test cases failed, it is due to the wrong approach in the code. 
-    2. Create a new approach to the problem. The fixed code should not be just a minor adjustment but a creative rethinking of the solution.
-    3. The new solution should address the core logic of the problem.
-    4. The new solution should be robust and general, capable of solving all test cases including edge cases.
+    1. Identify any algorithmic inefficiencies or logical errors.
+    2. The input/output and can not be wrong. If test cases failed, it is due to the wrong approach in the code. 
+    3. Create a new approach to the problem. The fixed code should not be just a minor adjustment but a creative rethinking of the solution.
+    4. The new solution should address the core logic of the problem.
+    5. The new solution should be robust and general, capable of solving all test cases including edge cases.
 
 
 Provide the Python code in the following JSON format:
 {{
+  "solution_analysis": {{
+    "failed_cases_analysis": [
+      {{
+        "input": "Extracted input from failed case",
+        "expected_output": "Expected output for this case",
+        "test_case_explanation": "Explain why the inputs lead to the expected_output, considering the problem's constraints and logic.",
+        "failure_reason": "Description of why the previous code failed for this case"
+      }}
+    ],
+    "problem_diagnosis": "Your analysis of the fundamental issues with the previous approach",
+    "new_approach": "Detailed explanation of the new algorithm or approach",
+    "implementation_details": "Explanation of key aspects of your new implementation"
+  }},
   "solution_code": {{
     "language": "Python",
-    "code": "Your newly implemented Python code here.",
-    "improvement": "Explain what new approach was taken, and how it addresses the problem better than the previous code."
+    "code": "Your newly implemented Python code here."
   }}
 }}
 """

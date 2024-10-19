@@ -266,23 +266,25 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 def process_problems_sequentially(model, tokenizer, problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
     
-    with open('results.txt', 'w') as file, Tee(file):
-        for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
-            try:
-                print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
-                problem_description = problem["problem_description"]
-                input_data = problem["sample_input"]
-                expected_output = problem["sample_output"]
-                
-                generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
-                
-                if best_score > 0:
-                    result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
-                else:
-                    result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations"
+    for index, problem in enumerate(tqdm(problem_cases, desc="Processing problems", unit="problem")):
+        try:
+            print(f"\nRunning problem {index + 1}/{total_problems} {problem['name']}")
+            problem_description = problem["problem_description"]
+            input_data = problem["sample_input"]
+            expected_output = problem["sample_output"]
+            
+            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
+            
+            if best_score > 0:
+                result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
+            else:
+                result = f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations"
+
+        except Exception as e:
+            error_msg = f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}"
+
+            with open('results.txt', 'w') as file, Tee(file):
                 print(result)
-            except Exception as e:
-                error_msg = f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}"
                 print(error_msg)
 
 def main():
