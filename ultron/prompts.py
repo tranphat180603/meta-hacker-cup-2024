@@ -385,12 +385,13 @@ Provide the Python code in the following JSON format:
         "input": "Extracted input from failed case",
         "expected_output": "Expected output for this case",
         "test_case_explanation": "Explain why the inputs lead to the expected_output, considering the problem's constraints and logic.",
-        "failure_reason": "Description of why the previous code failed for this case"
+        "revealed_pattern": "Any pattern or edge case revealed by this test. It should be straight answer without beating around the bush."
       }}
     ],
-    "problem_diagnosis": "Your analysis of the fundamental issues with the previous approach",
-    "new_approach": "Detailed explanation of the new algorithm or approach",
-    "implementation_details": "Explanation of key aspects of your new implementation"
+    "problem_diagnosis": "Your analysis of the fundamental issues with the previous approach.",
+    "code_review": "Look carefully at every important logic in the code like: data structure, algorithms and formulas. And identify exactly what lines of code cause the problem.",
+    "new_approach": "Detailed explanation of the new algorithm or approach.",
+    "implementation_details": "Explanation of key aspects of your new implementation. How do you change the code?"
   }},
   "solution_code": {{
     "language": "Python",
