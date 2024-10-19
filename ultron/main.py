@@ -305,8 +305,8 @@ def main():
                 problem_cases = [problem_cases[args.local_ds_idx]]
                 print(f"Processing specific problem: {problem_cases[0]['name']}")
             else:
-                print(f"Processing all {len(problem_cases)} problems in the folder")
                 problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
+                print(f"Processing all {len(problem_cases)} problems in the folder")
         else:  # handle hf dataset
             ds = load_dataset("hackercupai/hackercup")
             problem_cases = extract_problem_cases_from_hf(ds)
@@ -334,3 +334,4 @@ if __name__ == "__main__":
 
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
 #python main.py --problem_name "cheeseburger_corollary_ch1" --show_coT
+#python main.py --dataset_local_path "../contest_data/" --show_coT
