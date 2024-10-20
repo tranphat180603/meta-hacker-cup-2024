@@ -1,9 +1,8 @@
 import json
-from unittest.mock import patch
 import time
+import argparse
 import re
 from tqdm import tqdm
-import argparse
 import time
 import sys
 
@@ -80,6 +79,7 @@ def parse_args():
     parser.add_argument("--local_ds_idx", type = int, help = "if specified, solve particular problem in the folder")
     parser.add_argument("--fine_tuned", action="store_true", help="flag to use my fine-tuned version. Currently supporting Qwen 2.5 7B")
     parser.add_argument("--out", type = str, default = "output.txt", help = "log C-O-T to a text file")
+    parser.add_argument("--result_out", type = str, default = "result.txt", help = "log result of processing to a text file")
     parser.add_argument("--model_name", type = str, default = None, help = "model name from hf") 
     return parser.parse_args()
 
@@ -229,7 +229,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             if show_coT:
                 if failed_cases:
                     print(f"Logic error. Failed cases are: {failed_cases}")
-                else:
+                elif error:
                     print(f"Execution error: {error}")
                 print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
 
@@ -264,7 +264,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         return None, 0
 
 
-def process_problems_sequentially(model, tokenizer, problem_cases, code_iterations, max_num_retry, show_coT):
+def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_iterations, max_num_retry, show_coT):
     total_problems = len(problem_cases)
     error_msg = []
     result = []
@@ -285,11 +285,11 @@ def process_problems_sequentially(model, tokenizer, problem_cases, code_iteratio
         except Exception as e:
             error_msg.append(f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}")
 
-        with open('results.txt', 'w') as file, Tee(file):
-            for ex in result:
-                print(ex)
-            for err in error_msg:
-                print(error_msg)
+    with open(file, 'w') as file, Tee(file):
+        for ex in result:
+            print(ex)
+        for err in error_msg:
+            print(err)
 
 def main():
     #init arguments
@@ -324,7 +324,7 @@ def main():
                 print(f"Processing all {len(problem_cases)} problems from the dataset")
 
         # Process problems sequentially
-        process_problems_sequentially(model, tokenizer,problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
+        process_problems_sequentially(model, tokenizer, args.result_out,problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
 
         print("All processing finished.")
 
