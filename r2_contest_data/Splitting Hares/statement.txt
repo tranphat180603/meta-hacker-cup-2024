@@ -1,0 +1,40 @@
+You're designing Hacker Cup shirts for $N$ rabbits, numbered $1$ to $N$, with the \(i\)th rabbit weighing $W_i$ ounces. All rabbits have a unique weight. 
+
+You've created a variety of shirt colors, assigning color $C_i$ to the \(i\)th rabbit, by following these rules:
+
+* No shirt color is worn by exactly one rabbit.
+* The sum of $F(c)$ across all shirt colors is as low as possible, where $F(c)$ is the difference between the maximum and minimum weights of rabbits wearing color $c$. 
+
+Before ordering the shirts, you wrote down the weights of each rabbit on a really large carrot. But now that the shirts have arrived and it's time to hand them out, you notice that pieces of this carrot have been eaten, causing some weights to be missing (`−1` in the input).
+
+Now you want to figure out missing weights which satisfy the above conditions. If it turns out that no possible replacement for the missing weights would result in the given shirt assignment $C$, then you must have made an error when assigning the shirt colors in the first place, in which case you'll just give up.
+
+When outputting weights, you must stay within the range $[1\ ...\ 10{,}000]$, and you must ensure that all weights remain distinct.
+
+# Constraints
+\(1 \leq T \leq 105\)
+\(2 \leq N \leq 300\)
+\(1 \leq C_i \leq N\)
+\(1 \leq W_i \leq 500\) if $W_i$ is known, otherwise $W_i = -1$.
+
+All $W_i$ that are not $-1$ are distinct.
+No $C_i$ appears exactly once.
+
+# Input Format
+Input begins with an integer \(T\), the number of test cases. Each test case is three lines. 
+
+The first line contains the integer $N$. 
+The second line contains the $N$ integers $W_1$ through $W_N$, with unknown weights denoted as `-1`. 
+The third line contains the $N$ integers $C_1$ through $C_N$.
+
+# Output Format
+For the \(i\)th test case, print "`Case #i:` " followed by `Yes` if it is possible to assign weights to the rabbits with unknown weight such that the criteria above are met, or `No` otherwise.
+
+If the answer is `Yes`, output a second line that contains $W_1$ through $W_N$, in the same order as the input, but with all `-1`s replaced with actual integer weights that satisfy the above criteria. You cannot change any of the known weights, any weights that you assign must be within the inclusive range $[1\ ...\ 10{,}000]$, and all weights must be distinct.
+
+# Sample Explanation
+In the first case, if the missing rabbit has weight $6$, the assignment of shirt colors given has $\sum F(c) = 1 + 2 = 3$, which is as low as possible. Note that other replacement weights like $9$ or even $99$ would be accepted, because in those worlds we would still minimize $\sum F(c)$ by assigning the shirt colors in this way.
+
+In the second case, regardless of what weights the last two rabbits have, it would never have been correct to give different shirt colors to the rabbits of weight $1$ and $2$, so a mistake must have been made when assigning the shirt colors.
+
+In the fourth case, all weights are known, but the assignment of shirt colors is incorrect. $\sum F(c) = (3-1) + (6-4) = 4$, but if we instead assigned three different shirt colors to the three pairs of rabbit weights $[1, 2]$, $[3, 4]$ and $[5, 6]$, we could have achieved $\sum F(c) = (2-1) + (4-3) + (6-5) = 3$.

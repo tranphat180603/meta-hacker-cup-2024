@@ -1,0 +1,36 @@
+In their spare time, bunnies enjoy playing their own version of hopscotch on an $R \times C$ grid of burrows. The burrow at row $i$ (numbered from $1$ to $R$) and column $j$ (numbered from $1$ to $C$) is denoted as burrow $(i, j)$.
+
+Each burrow $(i, j)$ is owned by some bunny $B_{i,j}$. Note that multiple burrows may belong to the same bunny, and some bunnies may not own any burrows.
+
+In this game, a hop is only valid if it's between burrows of **different owners**. Hopping from burrow $(i_1, j_1)$ to burrow $(i_2, j_2)$ earns a score of $\max(|i_2 - i_1|, |j_2 - j_1|)$.
+
+Consider all *ordered pairs* of hops between different-owner burrows. If we sort their scores in non-decreasing order, what is the $K$-th ($1$-indexed) smallest score?
+
+# Constraints
+\(1 \leq T \leq 50\)
+\(1 \le R, C \le 800\)
+\(1 \leq B_{i, j} \leq R \times C\)
+\(1 \leq K \le 2\times\binom{R \times C}{2} \)
+
+$K$ is not more than the number of valid hops between different-owner burrows.
+
+*Note: The full input file for this problem is large (close to 100MB), so we strongly recommend downloading the encrypted zip file.*
+
+# Input Format
+Input begins with an integer \(T\), the number of test cases. Each case starts with a line containing the integers $R$, $C$, and $K$. Then, $R$ lines follow, the $i$-th of which contains $C$ integers $B_{i,1}, ..., B_{i,C}$.
+
+# Output Format
+For the \(i\)th test case, print "`Case #i:` " followed by the $K$-th ($1$-indexed) smallest score.
+
+# Sample Explanation
+In the first case, there are $4$ valid hops. In non-decreasing order of score, they are:
+1. From $(1, 2)$ to $(1, 3)$ with score $\max(|1 - 1|, |3 - 2|) = 1$.
+1. From $(1, 3)$ to $(1, 2)$ with score $\max(|1 - 1|, |2 - 3|) = 1$.
+1. From $(1, 1)$ to $(1, 3)$ with score $\max(|1 - 1|, |3 - 1|) = 2$.
+1. From $(1, 3)$ to $(1, 1)$ with score $\max(|1 - 1|, |1 - 3|) = 2$.
+
+The $K = 3$-rd smallest score is $2$.
+
+In the second case, there are $12$ valid hops. The highest score is $3$.
+
+In the third case, all valid hops have a score of $1$.
