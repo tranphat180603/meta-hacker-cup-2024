@@ -1,0 +1,5 @@
+Problem 1/5: Cottontail Climb (Part 1), Score: 100.0%
+Problem 2/5: Bunny Hopscotch, Score: 100.0%
+Problem 5/5: Cottontail Climb (Part 2), Score: 33.33333333333333%
+ERROR processing problem 3/5: Splitting Hares, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 4/5: Four in a Burrow, Error: cannot unpack non-iterable NoneType object
