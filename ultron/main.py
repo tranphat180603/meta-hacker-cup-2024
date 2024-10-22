@@ -112,16 +112,13 @@ def retry(func, max_attempts, *args, **kwargs):
 
     while attempts < max_attempts:
         print(f"Parsing JSON attempts: #{attempts + 1}")
-        try:
-            raw_response = func(*args, **kwargs)
-            parsed_response = response_json(raw_response)
-            
-            if parsed_response is not None and isinstance(parsed_response, dict):
-                return parsed_response
-            else:
-                print(f"Error parsing json with this e: {parsed_response}")
-        except Exception as e:
-            print(f"Error at function retry: {e}")
+        raw_response = func(*args, **kwargs)
+        parsed_response = response_json(raw_response)
+        
+        if parsed_response is not None and isinstance(parsed_response, dict):
+            return parsed_response
+        else:
+            print(f"Error parsing json with this e: {parsed_response}")
 
         attempts += 1
     
@@ -338,4 +335,5 @@ if __name__ == "__main__":
 
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
 #python main.py --problem_name "cheeseburger_corollary_ch1" --show_coT
-#python main.py --dataset_local_path "../contest_data/" --show_coT
+
+#python3 main.py --dataset_local_path "../contest_data/" --show_coT --out output1.txt --result_out result1.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
