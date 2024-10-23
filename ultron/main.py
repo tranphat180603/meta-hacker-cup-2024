@@ -336,4 +336,4 @@ if __name__ == "__main__":
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
 #python main.py --problem_name "cheeseburger_corollary_ch1" --show_coT
 
-#python3 main.py --dataset_local_path "../contest_data/" --show_coT --out output1.txt --result_out result1.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
+# python main.py --code_iterations 30 --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-7B-Instruct"

@@ -31,12 +31,12 @@ def run_extracted_code_with_timeout(extracted_code, test_input, timeout=20):
     output = io.StringIO()
     test_input_lines = test_input.splitlines(keepends=True)
 
-    def mock_input(self):
+    def mock_input():
         if not test_input_lines:
             raise ValueError("Error: The code did not handle the input correctly. There maybe more than 1 newline character between inputs. Try handling more than 1 inline character between inputs")
         
         # Remove leading or empty lines before input
-        while test_input_lines and not test_input_lines.strip():
+        while test_input_lines and not test_input_lines[0].strip():
             test_input_lines.pop(0)  # Skip blank lines
         
         # Now return the next valid input
