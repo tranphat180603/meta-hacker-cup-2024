@@ -33,7 +33,7 @@ def run_extracted_code_with_timeout(extracted_code, test_input, timeout=20):
 
     def mock_input(self):
         if not test_input_lines:
-            raise ValueError("Error: The code did not handle the input correctly. All input values have been consumed, but the code is still expecting more inputs.")
+            raise ValueError("Error: The code did not handle the input correctly. There maybe more than 1 newline character between inputs. Try handling more than 1 inline character between inputs")
         
         # Remove leading or empty lines before input
         while test_input_lines and not test_input_lines.strip():
