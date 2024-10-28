@@ -107,7 +107,7 @@ You should start by identifying the format of the test cases and specifying the 
   "test_case_reflection": {{
     "key_observations": [
       "List important observations from analyzing the test cases. These could be patterns, edge cases, or critical insights for solving the problem. Be as specific as possible. Your observation could be a formula, an algorithm or a chain of steps that lead to the result."
-    ],
+    ],j
     "variable_roles": {{
       "variable_name": "Explain the role or significance of each variable in the problem, based on how it's used across test cases."
     }},
@@ -121,8 +121,9 @@ You should start by identifying the format of the test cases and specifying the 
 Ensure that your analysis in the 'test_case_reflection' section captures general insights about the problem that go beyond individual test cases. This should include patterns observed across all test cases, important considerations for solving the problem efficiently, and any key relationships between variables that become apparent from analyzing multiple examples.
 """
 
-def refine_problem_understanding_template(problem_understanding, test_case_analysis):
-    return f"""
+def refine_problem_understanding_template(problem_understanding, test_case_analysis, evolution = ""):
+    if evolution == "":
+      return f"""
 Task: Now that you have analyzed the test cases and re-evaluated your initial understanding, refine the problem understanding. Focus on any new insights, corrections, or additional ideas that emerged from examining the test cases.
 
 Take into consideration:
@@ -158,54 +159,94 @@ Provide the refined problem understanding in the following JSON structure:
   }}
 }}
 """
+    else:
+        
+        return f"""
+Task: The problem understanding has evolved based on the improvement you get after having rolled out in the previous attempt. 
+Refine the problem understanding further, considering the new insights from the evolution process along with the test case analysis.
 
+Take into consideration:
+- Any changes in understanding that have been introduced by the evolution history.
+- Constraints, nuances, or input-output structures that may have been updated during previous iterations.
+- The evolution may contain significant adjustments or new strategies for solving the problem. Use this information to refine your understanding.
 
-def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysis):
-    return f"""
-Task: Based on the understanding of the problem 
+Your goal is to incorporate insights from the problem statement, test case analysis, and evolution history to provide a precise and updated understanding.
 
-{refine_problem_understanding} 
+Here is the original understanding: 
+'{problem_understanding}'
 
-provided and the following analysis: 
+Here is the test case analysis: 
+'{test_case_analysis}'
 
-'{test_case_analysis}', 
+Here is the evolution from previous iterations: 
+'{evolution}'
 
-generate 5 new AI-generated test cases. The goal is to observe patterns from the existing test cases and create new cases that are diverse and challenge different edge cases of the problem.
-
-The output must always follow this example structure:
-Case #1: YES
-Case #2: NO
-Case #3: YES
-Case #4: NO
-Case #5: NO
-
-Provide the new test cases in the following JSON structure:
+Provide the refined problem understanding in the following JSON structure:
 {{
-  "ai_generated_test_cases": [
-    {{
-      "input": "Input for test case 1",
-      "expected_output": "Expected output for test case 1"
+  "refined_problem_understanding": {{
+    "goal": "State the refined objective of the problem based on the evolution and test case analysis.",
+    "updated_constraints": "List updated constraints and any new limitations discovered from the evolution and test case analysis.",
+
+    "test_cases_update": {{
+      "input_format": "Update the input format based on the test case analysis if it has changed.",
+      "output_format": "Update the output format based on the test case analysis."
     }},
-    {{
-      "input": "Input for test case 2",
-      "expected_output": "Expected output for test case 2"
-    }},
-    {{
-      "input": "Input for test case 3",
-      "expected_output": "Expected output for test case 3"
-    }},
-    {{
-      "input": "Input for test case 4",
-      "expected_output": "Expected output for test case 4"
-    }},
-    {{
-      "input": "Input for test case 5",
-      "expected_output": "Expected output for test case 5"
+    "important_ideas_update": [
+      "Based on the output explanation in the test case analysis and evolution, update the important ideas to reflect the latest insights."
+    ],
+    "difficulty_assessment_update": {{
+      "updated_difficulty": "Reassess the difficulty of this problem (easy, medium, hard, super hard) based on insights from the evolution and test case analysis.",
+      "justification": "Provide reasoning for the updated difficulty assessment."
     }}
-  ]
+  }}
 }}
 """
 
+# def generate_ai_test_cases_prompt(refine_problem_understanding,test_case_analysis):
+#     return f"""
+# Task: Based on the understanding of the problem 
+
+# {refine_problem_understanding} 
+
+# provided and the following analysis: 
+
+# '{test_case_analysis}', 
+
+# generate 5 new AI-generated test cases. The goal is to observe patterns from the existing test cases and create new cases that are diverse and challenge different edge cases of the problem.
+
+# The output must always follow this example structure:
+# Case #1: YES
+# Case #2: NO
+# Case #3: YES
+# Case #4: NO
+# Case #5: NO
+
+# Provide the new test cases in the following JSON structure:
+# {{
+#   "ai_generated_test_cases": [
+#     {{
+#       "input": "Input for test case 1",
+#       "expected_output": "Expected output for test case 1"
+#     }},
+#     {{
+#       "input": "Input for test case 2",
+#       "expected_output": "Expected output for test case 2"
+#     }},
+#     {{
+#       "input": "Input for test case 3",
+#       "expected_output": "Expected output for test case 3"
+#     }},
+#     {{
+#       "input": "Input for test case 4",
+#       "expected_output": "Expected output for test case 4"
+#     }},
+#     {{
+#       "input": "Input for test case 5",
+#       "expected_output": "Expected output for test case 5"
+#     }}
+#   ]
+# }}
+# """
 
 
 def get_solution_ideas_template(refine_problem_understanding, test_case_analysis, num_solutions):
@@ -231,7 +272,7 @@ Provide the ideas in the following JSON structure:
 }}
 """
 
-def evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty):
+def evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis):
     return f"""
 Task: You are given multiple solutions based on the analysis of the solution ideas: 
 
@@ -240,12 +281,12 @@ Task: You are given multiple solutions based on the analysis of the solution ide
 Your goal is to choose the best solution based on the description below.
 
 Problem goal:
-Goal: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}'
+Goal: "{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}"
 
 Test case analysis:
 {test_case_analysis}
 Guidelines:
-- The main consideration should be that the solution can fully solve the problem in a simple and robust manner, especially given the difficulty level ('{problem_difficulty}').
+- The main consideration should be that the solution can fully solve the problem in a simple and robust manner, especially given the difficulty level ("{refine_problem_understanding.get('refined_problem_understanding', {}).get('difficulty_assessment_update', 'No assessment')}").
 - Ensure the solution has a reasonable runtime - less than three seconds on a modern computer, based on the problem's constraints, including large inputs.
 - Consider trade-offs between simplicity, robustness, and efficiency depending on the problem's difficulty.
 
@@ -255,20 +296,19 @@ Provide your evaluation in the following JSON format:
         "solution_name": "The name of the chosen solution",
         "justification": {{
             "goal_alignment": "Explain how the solution addresses the main goal of the problem: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal provided')}'.",
-            "constraint_handling": "Evaluate how well the solution meets the problem's constraints: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('constraints', 'No constraints provided')}'.",
-            "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('important_ideas', 'No key ideas provided')}'.",
+            "constraint_handling": "Evaluate how well the solution meets the problem's constraints: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('updated_constraints', 'No constraints provided')}'.",
+            "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: '{refine_problem_understanding.get('refined_problem_understanding', {}).get('important_ideas_update', 'No key ideas provided')}'.",
             "edge_case_handling": "Evaluate how the solution handles edge cases (if applicable).",
             "time_efficiency": "Provide the estimated time complexity and evaluate if it's suitable given the constraints.",
             "space_efficiency": "Provide the estimated space complexity and evaluate if it's efficient."
         }},
         "tradeoffs": {{
-            "simplicity_vs_efficiency": "Explain any trade-offs between simplicity and efficiency, particularly considering the difficulty level ('{problem_difficulty}')."
+            "simplicity_vs_efficiency": "Explain any trade-offs between simplicity and efficiency, particularly considering the difficulty level ('{refine_problem_understanding.get('refined_problem_understanding', {}).get('difficulty_assessment_update', 'No assessment')}')."
         }},
         "improvements": "Suggest any future improvements or optimizations to further enhance the solution."
     }}
 }}
 """
-
 
 def get_code_generation_template(selected_solution, test_case_analysis):
     return f"""
@@ -309,7 +349,7 @@ Provide the Python code in this JSON format:
 }}
 """
 
-def iterate_execution_error(generated_code, error_message, test_case_analysis):
+def iterate_execution_error(generated_code, error_message, test_case_analysis, error_history):
     return f"""
 Task: The generated code has encountered the following execution or runtime issue: 
 
@@ -321,6 +361,9 @@ Based on the latest code:
 
 The test cases are:
 {test_case_analysis}
+
+Error History:
+- The agent has previously encountered similar errors: {error_history}
 
 You must follow the instructions below:
   A. Code generation guidelines:
@@ -338,16 +381,20 @@ You must follow the instructions below:
 
 Provide the Python code in the following JSON format:
 {{
-  "solution_code": {{
-    "language": "Python",
-    "error_line": "The line that caused the error from the latest code",
-    "code": "Your newly implemented Python code here.",
-    "improvement": "Explain what was fixed, including specific references to line or logic changes that address the issue raised in the error message."
+  "policy_execution_error": {{
+    "chosen_strategy": "Description of the strategy applied to fix the error, whether exploiting a known good pattern or exploring new changes.",
+    "previous_errors_reviewed": "{len(error_history)} similar errors were reviewed.",
+    "solution_code": {{
+      "language": "Python",
+      "error_line": "The line that caused the error from the latest code.",
+      "code": "Your newly fixed Python code here."
+    }},
+    "improvements": "Explanation of what was changed and why it is expected to work."
   }}
 }}
 """
 
-def iterate_failed_test_cases(generated_code, failed_tests, test_case_analysis):
+def iterate_failed_test_cases(generated_code, failed_tests, test_case_analysis, failure_history):
     return f"""
 Task: The generated code has failed these test cases: 
 
@@ -360,6 +407,14 @@ Based on the latest code:
 The test cases are:
 {test_case_analysis}
 
+Failure History:
+- The agent has previously encountered similar failures: {failure_history}
+
+Policy Decision:
+- Identify recurring patterns in past failures and explore new strategies to avoid repeating the same mistakes.
+- Exploit working parts of the code that already produce correct results.
+- Consider trying a different approach for handling failed test cases that exhibit similar behavior.
+
 You must follow the instructions below:
   A. Code generation guidelines:
     1. Your code should solve the problem and pass all test cases, using the specified input-output structure. 
@@ -370,32 +425,21 @@ You must follow the instructions below:
     6. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
   B. Improvement guidelines:
-    1. Identify any algorithmic inefficiencies or logical errors.
-    2. The input/output and can not be wrong. If test cases failed, it is due to the wrong approach in the code. 
-    3. Create a new approach to the problem. The fixed code should not be just a minor adjustment but a creative rethinking of the solution.
-    4. The new solution should address the core logic of the problem.
-    5. The new solution should be robust and general, capable of solving all test cases including edge cases.
+    1. Use the insights from previous failures to guide the new approach.
+    2. Make significant adjustments to parts of the code that have caused repeated failures.
+    3. Maintain effective logic where it has proven successful.
 
 
 Provide the Python code in the following JSON format:
 {{
-  "solution_analysis": {{
-    "failed_cases_analysis": [
-      {{
-        "input": "Extracted input from failed case",
-        "expected_output": "Expected output for this case",
-        "test_case_explanation": "Explain why the inputs lead to the expected_output, considering the problem's constraints and logic.",
-        "revealed_pattern": "Any pattern or edge case revealed by this test. It should be straight answer without beating around the bush."
-      }}
-    ],
-    "problem_diagnosis": "Your analysis of the fundamental issues with the previous approach.",
-    "code_review": "Look carefully at every important logic in the code like: data structure, algorithms and formulas. And identify exactly what lines of code cause the problem.",
-    "new_approach": "Detailed explanation of the new algorithm or approach.",
-    "implementation_details": "Explanation of key aspects of your new implementation. How do you change the code?"
-  }},
-  "solution_code": {{
-    "language": "Python",
-    "code": "Your newly implemented Python code here."
+  "policy_failed_case_analysis": {{
+    "chosen_policy": "Description of whether the approach exploited known successes or explored a new strategy.",
+    "recurring_patterns_reviewed": "{len(failure_history)} previous failures were considered.",
+    "new_strategy": "Explanation of the changes made and why they should address the failures.",
+    "solution_code": {{
+      "language": "Python",
+      "code": "Your newly refined Python code here."
+    }}
   }}
 }}
 """

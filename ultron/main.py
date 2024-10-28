@@ -153,18 +153,18 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             return
 
         # Step 4: Generate AI test cases
-        ai_test = retry(
-            self_generate_test_cases, 
-            max_num_retry, 
-            model, 
-            tokenizer,
-            refine_understanding['refined_problem_understanding'], 
-            analysis, 
-            show_coT=show_coT
-        )
-        if not ai_test:
-            print("Failed parsing JSON for AI test case generation.")
-            return
+        # ai_test = retry(
+        #     self_generate_test_cases, 
+        #     max_num_retry, 
+        #     model, 
+        #     tokenizer,
+        #     refine_understanding['refined_problem_understanding'], 
+        #     analysis, 
+        #     show_coT=show_coT
+        # )
+        # if not ai_test:
+        #     print("Failed parsing JSON for AI test case generation.")
+        #     return
 
         # Step 5: Generate solution ideas
         solutions = retry(
@@ -189,7 +189,6 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             solutions['solutions'], 
             refine_understanding['refined_problem_understanding'], 
             analysis, 
-            refine_understanding['refined_problem_understanding']['difficulty_assessment_update'], 
             show_coT=show_coT
         )
         if not evaluate_solutions:

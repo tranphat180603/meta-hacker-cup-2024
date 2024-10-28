@@ -14,7 +14,7 @@ from prompts import (
     iterate_failed_test_cases
 )
 
-set_seed(88)
+set_seed(42)
 
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3, lora = False):
