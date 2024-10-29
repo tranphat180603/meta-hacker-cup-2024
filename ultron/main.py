@@ -203,10 +203,10 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         code_solution = retry(
             generate_python_code, 
             max_num_retry, 
-            model, 
+            model,
             tokenizer,
             evaluate_solutions['selected_solution'], 
-            analysis, 
+            analysis,
             refine_understanding['refined_problem_understanding'],
             show_coT=show_coT
         )

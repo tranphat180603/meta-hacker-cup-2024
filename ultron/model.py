@@ -119,11 +119,11 @@ Aim for a mix of conventional and novel approaches, considering efficiency, scal
         print(f"Error in generate_solution_ideas: {str(e)}")
         return None
 
-def evaluate_solutions_f(model, tokenizer, solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty, show_coT=False):
+def evaluate_solutions_f(model, tokenizer, solution_ideas, refine_problem_understanding, test_case_analysis, show_coT=False):
     try:
         if show_coT:        
             print("Step 5: Evaluating solutions: ")
-        return model_response(model, tokenizer ,evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis, problem_difficulty), show_coT=show_coT,system_prompt = """
+        return model_response(model, tokenizer ,evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis), show_coT=show_coT,system_prompt = """
 Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
 Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
 Provide a concise, objective assessment in the specified JSON format only.
