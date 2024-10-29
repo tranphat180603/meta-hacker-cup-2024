@@ -17,7 +17,8 @@ from model import (
     evaluate_solutions_f,
     generate_python_code,
     request_improvement_dte,
-    request_improvement_dtfc
+    request_improvement_dtfc,
+    request_final_improvement
 )
 
 from dataloader import(
@@ -69,9 +70,9 @@ class Tee:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run the full process for solving coding problems.")
-    parser.add_argument("--code_iterations", type=int, default=15, help="Number of code improvement iterations.")
-    parser.add_argument("--max_num_retry", type=int, default=10, help="Maximum number of retries for model responses.")
-    parser.add_argument("--num_workers", type=int, default=1, help="Number of parallel workers (equal to the number of GPUs).")
+    parser.add_argument("--code_iterations", type=int, default=20, help="Number of code improvement iterations.")
+    parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
+    parser.add_argument("--num_refinement", type=int, default=10, help="Maximum number of retries for model responses.")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve for hf dataset")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
@@ -107,7 +108,6 @@ def response_json(response_string):
 # Retry function to retry any function that uses response_json with added try-except for resilience
 def retry(func, max_attempts, *args, **kwargs):
     attempts = 0
-    result = None
 
     while attempts < max_attempts:
         print(f"Parsing JSON attempts: #{attempts + 1}")
@@ -124,126 +124,144 @@ def retry(func, max_attempts, *args, **kwargs):
     return None  # Return None to signal failure
 
 # Main function to run the process
-def run_full_process(model, tokenizer,problem_description, test_input, test_output ,code_iterations=5, max_num_retry=5, show_coT=False):
-    try:
-        # Step 1: Understand the problem
-        understand = retry(understanding_problem, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
-        if not understand:
-            print("Failed parsing JSON for problem understanding.")
+def run_full_process(model, tokenizer,problem_description, test_input, test_output, code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
+    # Step 1: Understand the problem
+    understand = retry(understanding_problem, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
+    if not understand:
+        print("Failed parsing JSON for problem understanding.")
+        return
+
+    # Step 2: Analyze test cases
+    analysis = retry(analyze_test_cases, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
+    if not analysis:
+        print("Failed parsing JSON for test case analysis.")
+        return
+    
+    #track code_iterations
+    attempts = 0
+    refinement_n = 0
+    #track best score and best code
+    best_score = 0
+    best_code = ""
+    final_code = ""
+    final_score = 0
+
+    #track the path we have gone through
+    error_history = {}
+    failure_history = {}
+
+    #reflect after every iteration
+    reflection = ""
+
+    while attempts < code_iterations:
+        # Step 3: Refine understanding
+        refine_understanding = retry(
+            get_refine_understanding, max_num_retry, 
+            model, 
+            tokenizer,
+            understand['understanding'], 
+            analysis, #all new information from the test case analysis
+            reflection,
+            show_coT=show_coT
+        )
+        if not refine_understanding:
+            print("Failed parsing JSON for refining understanding.")
             return
 
-        # Step 2: Analyze test cases
-        analysis = retry(analyze_test_cases, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
-        if not analysis:
-            print("Failed parsing JSON for test case analysis.")
+        # Step 4: Generate solution ideas
+        solutions = retry(
+            generate_solution_ideas, max_num_retry, 
+            model, 
+            tokenizer,
+            refine_understanding['refined_problem_understanding'], 
+            analysis, 
+            num_solutions=5, 
+            show_coT=show_coT
+        )
+        if not solutions:
+            print("Failed parsing JSON for solution generation.")
             return
+
+        # Step 5: Evaluate solutions
+        evaluate_solutions = retry(
+            evaluate_solutions_f, 
+            max_num_retry, 
+            model, 
+            tokenizer,
+            solutions['solutions'], 
+            refine_understanding['refined_problem_understanding'], 
+            analysis, 
+            show_coT=show_coT
+        )
+        if not evaluate_solutions:
+            print("Failed parsing JSON for solution evaluation.")
+            return
+
+        # Step 6: Generate Python code
+        code_solution = retry(
+            generate_python_code, 
+            max_num_retry, 
+            model, 
+            tokenizer,
+            evaluate_solutions['selected_solution'], 
+            analysis, 
+            refine_understanding['refined_problem_understanding'],
+            show_coT=show_coT
+        )
+        if not code_solution:
+            print("Failed parsing JSON for Python code generation.")
+            return
+
+        generated_code = code_solution['solution_code']['code']
+
+        # Run the generated code
+        score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+            generated_code, test_input=test_input, test_output=test_output
+        )
         
-        attempts = 0
-        best_score = 0
-        error_history = {}
-        failure_history = {}
+        #Fail to run code. Logging data
+        if show_coT:
+            if failed_cases:
+                print(f"Failed cases are: {failed_cases}")
+            elif error:
+                print(f"Execution error: {error}")
+            print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
 
-        while attempts < code_iterations:
-            # Step 3: Refine understanding
-            refine_understanding = retry(
-                get_refine_understanding, max_num_retry, 
-                model, 
-                tokenizer,
-                understand['understanding'], 
-                analysis, #all new information from the test case analysis
-                show_coT=show_coT
-            )
-            if not refine_understanding:
-                print("Failed parsing JSON for refining understanding.")
-                return
-
-            # Step 4: Generate solution ideas
-            solutions = retry(
-                generate_solution_ideas, max_num_retry, 
-                model, 
-                tokenizer,
-                refine_understanding['refined_problem_understanding'], 
-                analysis, 
-                num_solutions=5, 
-                show_coT=show_coT
-            )
-            if not solutions:
-                print("Failed parsing JSON for solution generation.")
-                return
-
-            # Step 5: Evaluate solutions
-            evaluate_solutions = retry(
-                evaluate_solutions_f, 
-                max_num_retry, 
-                model, 
-                tokenizer,
-                solutions['solutions'], 
-                refine_understanding['refined_problem_understanding'], 
-                analysis, 
-                show_coT=show_coT
-            )
-            if not evaluate_solutions:
-                print("Failed parsing JSON for solution evaluation.")
-                return
-
-            # Step 6: Generate Python code
-            code_solution = retry(
-                generate_python_code, 
-                max_num_retry, 
-                model, 
-                tokenizer,
-                evaluate_solutions['selected_solution'], 
-                analysis, 
-                show_coT=show_coT
-            )
-            if not code_solution:
-                print("Failed parsing JSON for Python code generation.")
-                return
-
-            generated_code = code_solution['solution_code']['code']
+        # If this score is better than the previous best, update the best result
+        if score > best_score:
+            best_score = score
             best_code = generated_code
 
-            # Run the generated code
-            score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                generated_code, test_input=test_input, test_output=test_output
-            )
-            
-            #Fail to run code. Logging data
-            if show_coT:
-                if failed_cases:
-                    print(f"Failed cases are: {failed_cases}")
-                elif error:
-                    print(f"Execution error: {error}")
-                print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
+        #Fix code
+        if failed_cases:  # Handle failed test cases
+            execution_error = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, generated_code, error, analysis, error_history, show_coT=show_coT)
+            reflection = execution_error
+        else:  # Handle execution/runtime errors
+            failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, generated_code, error, analysis, failure_history, show_coT=show_coT)
+            reflection = failed_tests
 
-            # If this score is better than the previous best, update the best result
-            if score > best_score:
-                best_score = score
-                best_code = generated_code
+        attempts += 1
 
-            #Fix code
-            if failed_cases:  # Handle failed test cases
-                error_message = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, generated_code, error, analysis, error_history, show_coT=show_coT)
-            else:  # Handle execution/runtime errors
-                failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, generated_code, error, analysis, failure_history, show_coT=show_coT)
-
-            attempts += 1
- 
-            # If we achieve a perfect score, iterate more with ai-generated tests
-            if best_score == 100:
+        # If we achieve a perfect score, iterate more with ai-generated tests
+        if best_score == 100:
+            while refinement_n < refinement_num:
                 print(f"Perfect score achieved on sample_test cases: ")
-                print("Begin to analyze on synthetic test cases: ")
-                return best_code, best_score
-                    
-            # After max iterations, return the best result so far if it exists
-            if best_score > 0:
-                return best_code, best_score
-            else:
-                return 
-
-    except Exception as e:
-        print(f"ERROR OCCURRED: {str(e)}")
-        return None, 0
+                print("Push one more step further, improve the program efficiency!")
+                final_code = retry(request_final_improvement(model, tokenizer, generated_code, refine_understanding, show_coT=show_coT))
+                
+                final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                final_code, test_input=test_input, test_output=test_output
+                )
+                refinement_n += 1
+                if final_score == 100:
+                    best_code == final_code
+                    return best_code, best_score
+                
+    # After max iterations, return the best result so far if it exists
+    if best_score > 0:
+        return best_code, best_score
+    else:
+        return 
 
 
 def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_iterations, max_num_retry, show_coT):

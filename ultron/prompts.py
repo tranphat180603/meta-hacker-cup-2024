@@ -260,7 +260,7 @@ Provide your evaluation in the following JSON format:
 }}
 """
 
-def get_code_generation_template(selected_solution, test_case_analysis):
+def get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding):
     return f"""
 You are tasked with generating Python code for the solution: 
 {selected_solution}
@@ -268,6 +268,9 @@ You are tasked with generating Python code for the solution:
 based on the provided test case analysis: 
 
 {test_case_analysis}
+
+And your own understanding of the problem:
+{refine_problem_understanding}
 
 Follow the instructions below:
 

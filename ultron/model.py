@@ -195,7 +195,6 @@ Provide the new solution in JSON format, structured as specified, without additi
         return None
 
 
-
 def request_final_improvement(model, tokenizer, generated_code, refine_problem_understanding, show_coT=False):
     try:
         if show_coT:
