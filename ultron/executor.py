@@ -110,13 +110,12 @@ def evaluate_generated_code_on_test_cases(extracted_code, test_input, test_outpu
     
     # If there's an error, return it
     if error:
-        return 0, error, generated_output, []
+        return 0, error, generated_output, None
 
     # Compare the generated output with expected output
     score, failed_cases = compare_with_expected_output(generated_output, test_output)
     
     if failed_cases:
-        error_msg = f"Test cases failed: {failed_cases}"
-        return score, error_msg, generated_output, failed_cases
+        return score, None, generated_output, failed_cases
 
     return score, error, generated_output, failed_cases

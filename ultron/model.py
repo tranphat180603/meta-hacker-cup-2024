@@ -93,11 +93,11 @@ Produce only valid JSON based on the provided structure without extra text or ex
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
 
-def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, show_coT=False):
+def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, reflection ,show_coT=False):
     try:
         if show_coT:
             print("Step 3: Refine problem understandings: ")
-        return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis),show_coT=show_coT ,system_prompt = """
+        return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection = reflection),show_coT=show_coT ,system_prompt = """
 Refine the problem understanding by integrating insights from test case analysis. 
 Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
 Provide the refined understanding in valid JSON format only.
@@ -132,11 +132,11 @@ Provide a concise, objective assessment in the specified JSON format only.
         print(f"Error in evaluate_solutions_f: {str(e)}")
         return None
 
-def generate_python_code(model, tokenizer, selected_solution, test_case_analysis, show_coT=False):
+def generate_python_code(model, tokenizer, selected_solution, test_case_analysis, refine_problem_understanding ,show_coT=False):
     try:
         if show_coT:       
             print("Step 6: First python code: ")
-        return model_response(model, tokenizer ,get_code_generation_template(selected_solution, test_case_analysis), show_coT=show_coT,system_prompt = """
+        return model_response(model, tokenizer ,get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding), show_coT=show_coT,system_prompt = """
 You are tasked with generating Python code for the selected solution that passed all test cases. 
 Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
 Ensure the output is strictly in the specified JSON format without any extra text or explanations.

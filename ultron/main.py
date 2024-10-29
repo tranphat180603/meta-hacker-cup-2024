@@ -154,9 +154,11 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
     reflection = ""
 
     while attempts < code_iterations:
+        print(f"Attempt #{attempts}/{code_iterations}")
         # Step 3: Refine understanding
         refine_understanding = retry(
-            get_refine_understanding, max_num_retry, 
+            get_refine_understanding, 
+            max_num_retry, 
             model, 
             tokenizer,
             understand['understanding'], 
@@ -220,12 +222,14 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         )
         
         #Fail to run code. Logging data
-        if show_coT:
-            if failed_cases:
-                print(f"Failed cases are: {failed_cases}")
-            elif error:
-                print(f"Execution error: {error}")
-            print(f"Code iterations. Attempt #{attempts + 1}/{code_iterations}")
+        if failed_cases:
+            failure_history[failed_cases] = failure_history.get(failed_cases, 0) + 1
+            if show_coT:
+                print(f"Failed cases: {failed_cases} (Occurred {failure_history[failed_cases]} times)")
+        elif error:
+            error_history[error] = error_history.get(error, 0) + 1
+            if show_coT:
+                print(f"Execution error: {error} (Occurred {error_history[error]} times)")
 
         # If this score is better than the previous best, update the best result
         if score > best_score:
@@ -248,7 +252,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                 print(f"Perfect score achieved on sample_test cases: ")
                 print("Push one more step further, improve the program efficiency!")
                 final_code = retry(request_final_improvement(model, tokenizer, generated_code, refine_understanding, show_coT=show_coT))
-                
+
                 final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 final_code, test_input=test_input, test_output=test_output
                 )
@@ -264,7 +268,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         return 
 
 
-def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_iterations, max_num_retry, show_coT):
+def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_iterations, max_num_retry, num_refinement ,show_coT):
     total_problems = len(problem_cases)
     error_msg = []
     result = []
@@ -275,7 +279,7 @@ def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_it
             input_data = problem["sample_input"]
             expected_output = problem["sample_output"]
             
-            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, show_coT=show_coT)
+            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
             
             if best_score > 0:
                 result.append(f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%")
@@ -324,7 +328,7 @@ def main():
                 print(f"Processing all {len(problem_cases)} problems from the dataset")
 
         # Process problems sequentially
-        process_problems_sequentially(model, tokenizer, args.result_out,problem_cases, args.code_iterations, args.max_num_retry, args.show_coT)
+        process_problems_sequentially(model, tokenizer, args.result_out,problem_cases, args.code_iterations, args.max_num_retry, args.num_refinement ,args.show_coT)
 
         print("All processing finished.")
 
@@ -339,4 +343,4 @@ if __name__ == "__main__":
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
 #python main.py --code_iterations 30 --problem_name "cheeseburger_corollary_ch1" --show_coT --model_name "Qwen/Qwen2.5-7B-Instruct" --out ../r2_contest_data/outputcheesebg1-7b.txt --result_out ../r2_contest_data/resultcheesebg1-7b.txt
 
-# python main.py --code_iterations 30 --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
+# python main.py --code_iterations 15 --num_refinement 15  --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
