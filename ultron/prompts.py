@@ -360,7 +360,7 @@ The test cases are:
 {test_case_analysis}
 
 Failure History:
-- The agent has previously encountered similar failures: 
+- You have a history of making these mistakes and their corresponding number of times that it has occured.
 {failure_history}
 
 You must follow the instructions below:
@@ -368,7 +368,7 @@ You must follow the instructions below:
     1. Identify and explore new strategies to address recurring patterns in past failures, aiming to avoid similar issues, especially the ones that occur many times!
     2. Exploit parts of the code that are working well and consistently yield correct results.
     3. Adjust or restructure problematic sections while preserving effective logic from previous iterations.
-    4. And more importantly, don't be afraid to try new things as I will give you more information to fix things!
+    4. And more importantly, for the failure that has occured many times don't be afraid to try new things even though you might ruin the program because I will give you more information to fix things!
 
 Provide your analysis in the following JSON format:
 {{
