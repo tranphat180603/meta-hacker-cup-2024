@@ -154,7 +154,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
     reflection = ""
 
     while attempts < code_iterations:
-        print(f"Attempt #{attempts}/{code_iterations}")
+        print(f"Iterate attempt #{attempts}/{code_iterations}")
         # Step 3: Refine understanding
         refine_understanding = retry(
             get_refine_understanding, 
@@ -221,15 +221,19 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             generated_code, test_input=test_input, test_output=test_output
         )
         
-        #Fail to run code. Logging data
-        if failed_cases:
-            failure_history[failed_cases] = failure_history.get(failed_cases, 0) + 1
-            if show_coT:
-                print(f"Failed cases: {failed_cases} (Occurred {failure_history[failed_cases]} times)")
-        elif error:
+        if error:
+            # Ensure error is a string
+            error = str(error)
             error_history[error] = error_history.get(error, 0) + 1
             if show_coT:
                 print(f"Execution error: {error} (Occurred {error_history[error]} times)")
+        elif failed_cases:
+            # Convert failed_cases list to a tuple or formatted string for hashing
+            failed_cases_key = str(failed_cases)  # Or use str(failed_cases) to convert to a string
+            failure_history[failed_cases_key] = failure_history.get(failed_cases_key, 0) + 1
+            if show_coT:
+                print(f"Failed cases: {failed_cases} (Occurred {failure_history[failed_cases_key]} times)")
+
 
         # If this score is better than the previous best, update the best result
         if score > best_score:
@@ -341,6 +345,6 @@ if __name__ == "__main__":
 #python main.py --code_iterations 10 --max_num_retry 5 --dataset_local_path "contest_data" --show_coT --out "output1.txt"
 
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
-#python main.py --code_iterations 30 --problem_name "cheeseburger_corollary_ch1" --show_coT --model_name "Qwen/Qwen2.5-7B-Instruct" --out ../r2_contest_data/outputcheesebg1-7b.txt --result_out ../r2_contest_data/resultcheesebg1-7b.txt
+#python main.py --code_iterations 30 --num_refinement 15 --problem_name "cheeseburger_corollary_ch1" --show_coT --model_name "Qwen/Qwen2.5-7B-Instruct" --out ../r2_contest_data/outputcheesebg1-7b.txt --result_out ../r2_contest_data/resultcheesebg1-7b.txt
 
 # python main.py --code_iterations 15 --num_refinement 15  --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
