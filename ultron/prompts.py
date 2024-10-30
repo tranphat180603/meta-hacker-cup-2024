@@ -304,47 +304,46 @@ Provide the Python code in this JSON format:
 
 def reflect_execution_error(generated_code, error_message, test_case_analysis, error_history):
     return f"""
-Task: The generated code has the latest execution or runtime issue:
+Task: The generated code has encountered an execution or runtime issue:
 
 {error_message}
 
-Based on the latest code:
-
+Current code:
 '{generated_code}'
 
-The test cases are:
+The test cases being evaluated:
 {test_case_analysis}
 
 Error History:
-- The agent has previously encountered similar errors: 
+- The errors and their number of occurrence so far: 
 {error_history}
 
-You must follow the instructions below:
-  A. Fix error guidelines:
-    1. Focus on the current error and identify the specific line causing the error, then fix it.
-    2. Avoid making similar errors that have occurred in the past. Especially the error that's occured multiple times in the error history.
-    3. Pinpoint the line of code that is causing the error and provide a clear fix.
-    4. The fixed code must be robust and handle the problem effectively.
+Instructions:
+- Analyze the current error and identify the specific line or section of code responsible.
+- Consider any recurring patterns in `error_history` and avoid repeating similar mistakes, especially those that have occurred frequently.
+- Design a robust solution that not only addresses this error but also reduces the likelihood of similar issues in future iterations.
 
-Provide your analysis in the following JSON format:
+Provide your analysis in the JSON format below, focusing on clearly articulating the error’s root cause, proposed modifications, and next steps for improvement:
+
 {{
   "error_reflection": {{
-    "root_cause": "The fundamental reason why this error occurred",
-    "trigger_condition": "What input/state triggered this error",
-    "potential_patterns": "Any recurring patterns in errors that need attention"
+    "root_cause": "Explain the fundamental reason for this error, identifying deeper issues if patterns exist in error history.",
+    "trigger_condition": "Describe the specific input/state that triggered this error.",
+    "potential_patterns": "Identify any patterns in recurring errors that need to be addressed."
   }},
   "changes_needed": {{
-    "fix_strategy": "The specific approach to fix this error",
+    "fix_strategy": "Detail a targeted approach to fix this specific error, incorporating lessons from past errors if applicable.",
     "code_modifications": {{
-      "problematic_line": "The exact line causing the error",
-      "proposed_fix": "The corrected version of the code",
-      "safety_checks": "Additional checks needed to prevent similar errors"
+      "problematic_line": "Pinpoint the exact line or section causing the issue.",
+      "proposed_fix": "Provide the corrected version of the code, focusing on robustness.",
+      "safety_checks": "Describe additional checks or constraints to prevent similar errors in the future."
     }},
-    "expected_outcome": "Why these changes should resolve the error"
+    "expected_outcome": "Explain why these changes should resolve the error and improve overall stability."
   }},
-  "next_step": "What exactly should you do next based on the reflection (e.g., modify a specific function)."
+  "next_step": "Specify what to do next based on this reflection, such as adjusting a function or exploring a new solution approach."
 }}
 """
+
 
 def reflect_failed_test(generated_code, failed_tests, test_case_analysis, failure_history):
     return f"""
