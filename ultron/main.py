@@ -90,13 +90,18 @@ def response_json(response_string):
     if isinstance(response_string, dict):
         return response_string
 
-    # Step 1: Remove 'json', backticks, and any LaTeX-style formatting like \( ... \) or \[ ... \]
+    # Step 1: Remove 'json', backticks
     cleaned_response = response_string.replace('json', '').strip('```').strip()
-
-    # Step 2: Remove LaTeX-like math notation \( ... \) or \[ ... \]
-    cleaned_response = re.sub(r'\\\(|\\\)', '', cleaned_response)  # Removes \( and \)
-    cleaned_response = re.sub(r'\\\[|\\\]', '', cleaned_response)  # Removes \[ and \]
-    cleaned_response = re.sub(r'\\{(.+?)}', '', cleaned_response)  # Removes any \{ ... }
+    
+    # Step 2: Remove all LaTeX-style math notation
+    # Remove \( ... \) notation
+    cleaned_response = re.sub(r'\\\([^\)]*\\\)', '', cleaned_response)
+    # Remove \[ ... \] notation
+    cleaned_response = re.sub(r'\\\[[^\]]*\\\]', '', cleaned_response)
+    # Remove other LaTeX commands
+    cleaned_response = re.sub(r'\\[a-zA-Z]+\{[^\}]*\}', '', cleaned_response)
+    # Remove remaining single LaTeX brackets
+    cleaned_response = re.sub(r'\\\(|\\\)|\\\[|\\\]', '', cleaned_response)
 
     try:
         # Step 3: Parse the cleaned string into a Python dictionary
