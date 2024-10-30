@@ -293,18 +293,20 @@ Case #3: YES
 Case #4: NO
 Case #5: NO
 
-Provide the Python code in this JSON format:
+Provide the Python code in the following JSON format. Note that newlines within the `"code"` field should be represented by `\\n` to ensure JSON compatibility:
+
 {{
   "solution_code": {{
     "sample_input": "Extract the correct first test case input",
     "sample_output": "Expected output for the first test case",
     "language": "Python",
-    "code": "Your Python code as a string here, ensuring it can process the input and output correctly",
+    "code": "Your Python code here, with each line separated by \\n for JSON compatibility.",
     "solution_name": "Name of the chosen solution",
     "description": "Brief explanation of how the code implements the solution."
   }}
 }}
 """
+
 
 def reflect_execution_error(generated_code, error_message, test_case_analysis, error_history):
     return f"""

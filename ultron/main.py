@@ -290,9 +290,13 @@ def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_it
             generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
             
             if best_score > 0:
-                result.append(f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%")
+                log = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
+                print(log)
+                result.append(log)
             else:
-                result.append(f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations")
+                log = f"Problem {index + 1}/{total_problems}: {problem['name']}, Failed to find solution after {code_iterations} iterations"
+                print(log)
+                result.append(log)
 
         except Exception as e:
             error_msg.append(f"ERROR processing problem {index + 1}/{total_problems}: {problem['name']}, Error: {str(e)}")
@@ -351,4 +355,4 @@ if __name__ == "__main__":
 #python main.py --problem_name "cheeseburger_corollary_ch1" --fine_tuned --show_coT
 #python main.py --code_iterations 30 --num_refinement 15 --problem_name "cheeseburger_corollary_ch1" --show_coT --model_name "Qwen/Qwen2.5-72B" --out ../r2_contest_data/outputcheesebg1-7b.txt --result_out ../r2_contest_data/resultcheesebg1-7b.txt
 
-# python main.py --code_iterations 15 --num_refinement 15  --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-7B-Instruct"
+# python main.py --code_iterations 15 --num_refinement 15  --dataset_local_path ../r2_contest_data/ --show_coT --out ../r2_contest_data/output7b.txt --result_out ../r2_contest_data/result7b.txt --model_name "Qwen/Qwen2.5-72B-Instruct"
