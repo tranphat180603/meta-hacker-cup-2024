@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
 from peft import PeftModel, PeftConfig
+import torch
 
 from prompts import (
     get_problem_understanding_template,
@@ -17,9 +18,9 @@ from prompts import (
 set_seed(42)
 
 # Load the model and tokenizer
-def load_model_and_tokenizer(model_name, adapter_path ,temperature=0.3, lora = False):
+def load_model_and_tokenizer(model_name, adapter_path, lora = False):
     assert model_name is not None, "Must specify model_name"
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16, device_map="auto", attn_implementation="flash_attention_2")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     if lora:
         merged_model = PeftModel.from_pretrained(model, adapter_path)
@@ -36,18 +37,19 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
     full_prompt = apply_chat_template(tokenizer, messages)
     
     model_inputs  = tokenizer(full_prompt, return_tensors="pt").to(model.device)
-    generated_ids = model.generate(
-        **model_inputs,
-        max_new_tokens=max_new_tokens,
-        temperature=temperature,          
-        do_sample=True,                   
-        pad_token_id=model.config.eos_token_id 
-    )
-    generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-    ]
+    with torch.no_grad():
+        generated_ids = model.generate(
+            **model_inputs,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,          
+            do_sample=True,                   
+            pad_token_id=model.config.eos_token_id 
+        )
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        ]
 
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return response
 
 
