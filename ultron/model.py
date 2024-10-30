@@ -155,7 +155,7 @@ def request_improvement_dte(model, tokenizer, generated_code, error_message, ana
             reflect_execution_error(generated_code, error_message, analysis, error_history), 
             show_coT=show_coT, 
             system_prompt="""
-Your task is to correct the Python code by focusing on the specific execution error identified in the error message. 
+Your task is to reflect and propose a change on the Python code by focusing on the specific execution error identified in the error message. 
 
 - Address the line causing the error and prevent similar issues, especially those with multiple occurrences in the error history.
 - Use the test case analysis and error history to improve the code’s robustness.
@@ -179,7 +179,7 @@ def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, ana
             reflect_failed_test(generated_code, failed_tests, analysis, failure_history), 
             show_coT=show_coT, 
             system_prompt="""
-Your task is to design a new Python solution to resolve issues from failed test cases. 
+Your task is to reflect and propose a better solution to resolve issues from failed test cases. 
 
 Guidelines:
 1. **Fundamental Change**: Focus on creating a completely new solution that addresses the problem effectively, rather than patching existing code.
