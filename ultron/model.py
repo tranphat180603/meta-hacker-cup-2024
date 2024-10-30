@@ -93,15 +93,21 @@ Produce only valid JSON based on the provided structure without extra text or ex
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
 
-def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, reflection ,show_coT=False):
+def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, reflection, show_coT=False):
     try:
         if show_coT:
             print("Step 3: Refine problem understandings: ")
-        return model_response(model, tokenizer ,refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection = reflection),show_coT=show_coT ,system_prompt = """
+        return model_response(model, tokenizer, refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection=reflection), show_coT=show_coT, system_prompt="""
 Refine the problem understanding by integrating insights from test case analysis. 
-Update constraints, identify edge cases, and resolve discrepancies between initial understanding and test cases. 
-Provide the refined understanding in valid JSON format only.
-        """, temperature = 0.2)
+If additional reflection from previous iterations is available, include these insights to update the problem understanding further.
+
+Instructions:
+- Use the test case analysis to update constraints, identify edge cases, and correct any initial misunderstandings.
+- If reflection data is provided, use it to identify recurring patterns or issues from past attempts, and make adjustments accordingly.
+
+Output Requirements:
+- Provide the refined problem understanding in JSON format only, ensuring all updates are clearly reflected.
+""", temperature=0.7)
     except Exception as e:
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
@@ -161,15 +167,14 @@ Your task is to reflect and propose a change on the Python code by focusing on t
 - Use the test case analysis and error history to improve the code’s robustness.
 
 Respond in JSON format only, with the corrected code and explanations according to the provided structure.
-"""
+""", 
+            temperature = 0.5
         )
     except Exception as e:
         print(f"Error in request_improvement_dte: {str(e)}")
         return None
 
-
-
-def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, analysis, failure_history ,show_coT=False):  # Due to failed cases (logic/approach issue)
+def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, analysis, failure_history, show_coT=False):  # Due to failed cases (logic/approach issue)
     try:
         if show_coT:
             print("Step 7.2: Iterating on failed test cases:")
@@ -179,21 +184,21 @@ def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, ana
             reflect_failed_test(generated_code, failed_tests, analysis, failure_history), 
             show_coT=show_coT, 
             system_prompt="""
-Your task is to reflect and propose a better solution to resolve issues from failed test cases. 
+Your task is to reflect and propose a fundamentally new solution to resolve issues arising from the failed test cases. Do not hesitate to try new strategies or alternative approaches, especially if a recurring problem has been identified multiple times.
 
 Guidelines:
-1. **Fundamental Change**: Focus on creating a completely new solution that addresses the problem effectively, rather than patching existing code.
-2. **Pass All Test Cases**: Ensure the approach can handle all failed test cases by rethinking the logic.
-3. **Efficient and Robust**: Optimize for both correctness and performance.
+1. **Explore New Solutions**: Prioritize creating an entirely new solution that comprehensively addresses the problem. Aim for a fresh perspective rather than making incremental patches to the current code.
+2. **Address Recurring Issues**: If an issue has occurred frequently, rethink your approach entirely to avoid previous pitfalls.
+3. **Ensure All Test Cases Pass**: Design the solution to handle all failed test cases and cover potential edge cases robustly.
+4. **Optimize for Efficiency and Robustness**: The solution should be both efficient and capable of handling larger inputs or edge cases.
 
-Provide the new solution in JSON format, structured as specified, without additional comments or explanations.
+Provide the new solution in JSON format, structured as specified, with no additional comments or explanations.
 """, 
             temperature=0.9
         )
     except Exception as e:
         print(f"Error in request_improvement_dtfc: {str(e)}")
         return None
-
 
 def request_final_improvement(model, tokenizer, generated_code, refine_problem_understanding, show_coT=False):
     try:
