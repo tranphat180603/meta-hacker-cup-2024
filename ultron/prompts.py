@@ -123,7 +123,7 @@ Ensure that your analysis in the 'test_case_reflection' section captures general
 
 def refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection = ""):
     if reflection == "":
-      return f"""
+        return f"""
 Task: Now that you have analyzed the test cases and re-evaluated your initial understanding, refine the problem understanding. Focus on any new insights, corrections, or additional ideas that emerged from examining the test cases.
 
 Take into consideration:
@@ -160,14 +160,13 @@ Provide the refined problem understanding in the following JSON structure:
 }}
 """
     else:
-        
         return f"""
-Task: The problem understanding has evolved based on the improvement you get after having rolled out in the previous attempt. 
+Task: The problem understanding has evolved based on the improvements and insights gained after the previous iteration. 
 Refine the problem understanding further, considering the new insights from the reflection process along with the test case analysis.
 
-Take the reflection into carefully consideration to update your understanding.
+Take the reflection carefully into consideration to update your understanding.
 
-Your goal is to incorporate insights from the problem statement, test case analysis, and reflection history to provide a precise and updated understanding.
+Your goal is to incorporate insights from the problem statement, test case analysis, and reflection to provide a precise and updated understanding.
 
 Here is the original understanding: 
 '{problem_understanding}'
@@ -194,10 +193,14 @@ Provide the refined problem understanding in the following JSON structure:
     "difficulty_assessment_update": {{
       "updated_difficulty": "Reassess the difficulty of this problem (easy, medium, hard, super hard) based on insights from the reflection and test case analysis.",
       "justification": "Provide reasoning for the updated difficulty assessment."
-    }}
+    }},
+    "changes_based_on_reflection": [
+      "List specific updates made to the problem understanding based on insights gained from the reflection."
+    ]
   }}
 }}
 """
+
 
 def get_solution_ideas_template(refine_problem_understanding, test_case_analysis, num_solutions):
     return f"""
