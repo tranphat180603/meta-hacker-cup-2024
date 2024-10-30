@@ -252,9 +252,9 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
         # If we achieve a perfect score, iterate more with ai-generated tests
         if best_score == 100:
+            print(f"Perfect score achieved on sample_test cases: ")
+            print("Push one more step further, improve the program efficiency!")
             while refinement_n < refinement_num:
-                print(f"Perfect score achieved on sample_test cases: ")
-                print("Push one more step further, improve the program efficiency!")
                 final_code = retry(request_final_improvement(model, tokenizer, generated_code, refine_understanding, show_coT=show_coT))
 
                 final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
@@ -262,9 +262,9 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                 )
                 refinement_n += 1
                 if final_score == 100:
+                    print(f"Nailed this problem!")
                     best_code == final_code
                     return best_code, best_score
-                
     # After max iterations, return the best result so far if it exists
     if best_score > 0:
         return best_code, best_score
