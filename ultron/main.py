@@ -96,6 +96,7 @@ def response_json(response_string):
     # Step 2: Remove LaTeX-like math notation \( ... \) or \[ ... \]
     cleaned_response = re.sub(r'\\\(|\\\)', '', cleaned_response)  # Removes \( and \)
     cleaned_response = re.sub(r'\\\[|\\\]', '', cleaned_response)  # Removes \[ and \]
+    cleaned_response = re.sub(r'\\{(.+?)}', '', cleaned_response)  # Removes any \{ ... }
 
     try:
         # Step 3: Parse the cleaned string into a Python dictionary
