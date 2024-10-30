@@ -215,7 +215,7 @@ Optimize the code for performance to handle larger inputs efficiently. Focus on:
 - Using efficient data structures (e.g., dictionaries, heaps) for faster access.
 - Simplifying logic where possible while maintaining correct functionality.
 
-Output the optimized code and an explanation of the improvements in JSON format.
+Response in valid JSON format.
 """
             )
     except Exception as e:
