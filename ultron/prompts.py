@@ -263,6 +263,7 @@ Provide your evaluation in the following JSON format:
 }}
 """
 
+
 def get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding):
     return f"""
 You are tasked with generating Python code for the solution: 
