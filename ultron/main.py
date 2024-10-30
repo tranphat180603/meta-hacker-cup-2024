@@ -260,6 +260,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                 final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 final_code, test_input=test_input, test_output=test_output
                 )
+                print(f"Final score: {final_score}")
                 refinement_n += 1
                 if final_score == 100:
                     print(f"Nailed this problem!")
