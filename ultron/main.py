@@ -255,7 +255,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             print(f"Perfect score achieved on sample_test cases: ")
             print("Push one more step further, improve the program efficiency!")
             while refinement_n < refinement_num:
-                final_code = retry(request_final_improvement(model, tokenizer, generated_code, refine_understanding, show_coT=show_coT))
+                final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding, show_coT=show_coT)
                 final_code = final_code["optimized_code"]["code"]
                 final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
                 final_code, test_input=test_input, test_output=test_output
