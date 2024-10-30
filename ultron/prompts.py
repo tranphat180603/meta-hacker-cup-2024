@@ -405,14 +405,14 @@ Task: The current solution has passed all sample test cases but needs to be opti
 Your goal is to improve its runtime efficiency so that it can process full test cases within the constraints in your understanding.
 
 Instructions:
-1. **Analyze Bottlenecks**: Identify any inefficient parts of the code, such as nested loops or redundant calculations.
-2. **Optimize Data Structures**: Where possible, replace costly operations with efficient data structures (e.g., dictionaries, heaps, binary search trees).
-3. **Reduce Redundancies**: Remove or simplify repeated calculations, and consider precomputing values where feasible.
-4. **Simplify Logic**: Rewrite the code to reduce the number of operations in critical sections.
+1. Analyze Bottlenecks: Identify any inefficient parts of the code, such as nested loops or redundant calculations.
+2. Optimize Data Structures: Where possible, replace costly operations with efficient data structures (e.g., dictionaries, heaps, binary search trees).
+3. Reduce Redundancies: Remove or simplify repeated calculations, and consider precomputing values where feasible.
+4. Simplify Logic: Rewrite the code to reduce the number of operations in critical sections.
 
 Performance Goals: minimize time complexity to handle larger inputs
 
-Provide your optimized code in the following JSON format:
+You must provide your optimized code in the following JSON format:
 {{
   "optimized_code": {{
     "language": "Python",
