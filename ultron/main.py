@@ -274,6 +274,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                         best_code == final_code
                         return best_code, best_score
                 refinement_n += 1
+            print("Code couldn't execute on full inputs")
                 
     return best_code, best_score
 
