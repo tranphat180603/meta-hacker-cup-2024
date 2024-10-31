@@ -250,7 +250,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
         if failed_cases:  # Handle failed test cases
             execution_error = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, generated_code, error, analysis, error_history, show_coT=show_coT)
             reflection = execution_error
-        else:  # Handle execution/runtime errors
+        elif error:  # Handle execution/runtime errors
             failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, generated_code, error, analysis, failure_history, show_coT=show_coT)
             reflection = failed_tests
 
