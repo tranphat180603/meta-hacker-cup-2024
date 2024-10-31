@@ -140,15 +140,28 @@ Provide a concise, objective assessment in the specified JSON format only.
         print(f"Error in evaluate_solutions_f: {str(e)}")
         return None
 
-def generate_python_code(model, tokenizer, selected_solution, test_case_analysis, refine_problem_understanding ,show_coT=False):
+def generate_python_code(model, tokenizer, selected_solution, test_case_analysis, refine_problem_understanding, show_coT=False):
     try:
-        if show_coT:       
-            print("Step 6: First python code: ")
-        return model_response(model, tokenizer ,get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding), show_coT=show_coT,system_prompt = """
-You are tasked with generating Python code for the selected solution that passed all test cases. 
-Your job is to provide code that strictly follows the input-output structure, divides the logic into sub-functions, and handles multiple test cases.   
-Ensure the output is strictly in the specified JSON format without any extra text or explanations.
-        """, temperature=0.2)
+        if show_coT:
+            print("Step 6: Generating first solution code: ")
+        return model_response(
+            model,
+            tokenizer,
+            get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding),
+            show_coT=show_coT,
+            system_prompt="""
+Act as an autonomous coding agent tasked with solving the problem effectively. Focus solely on implementing a functional solution that meets the problem requirements and passes all test cases.
+
+Guidelines:
+1. Develop Python code that handles multiple test cases in the specified input-output structure.
+2. Avoid error handling or comments, and don’t include explanations—produce only essential code.
+3. Structure code logically, using sub-functions where appropriate to streamline logic and readability.
+4. Output only valid JSON in the specified format.
+
+Your primary objective is to produce correct and efficient code that satisfies the problem requirements.
+            """,
+            temperature=0.5
+        )
     except Exception as e:
         print(f"Error in generate_python_code: {str(e)}")
         return None

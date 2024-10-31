@@ -27,6 +27,7 @@ from dataloader import(
 )
 
 from executor import(
+    run_extracted_code_with_timeout,
     evaluate_generated_code_on_test_cases
 )
 
@@ -130,7 +131,7 @@ def retry(func, max_attempts, *args, **kwargs):
     return None  # Return None to signal failure
 
 # Main function to run the process
-def run_full_process(model, tokenizer,problem_description, test_input, test_output, code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
+def run_full_process(model, tokenizer,problem_description, test_input, test_output, full_input,code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
     # Step 1: Understand the problem
     understand = retry(understanding_problem, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
     if not understand:
@@ -248,10 +249,10 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
         #Fix code
         if failed_cases:  # Handle failed test cases
-            execution_error = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, generated_code, error, analysis, error_history, show_coT=show_coT)
+            execution_error = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, error_history, show_coT=show_coT)
             reflection = execution_error
         elif error:  # Handle execution/runtime errors
-            failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, generated_code, error, analysis, failure_history, show_coT=show_coT)
+            failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, failure_history, show_coT=show_coT)
             reflection = failed_tests
 
         attempts += 1
@@ -263,15 +264,16 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             while refinement_n < refinement_num:
                 final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding, show_coT=show_coT)
                 final_code = final_code["optimized_code"]["code"]
-                final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                final_code, test_input=test_input, test_output=test_output
+                check_result = run_extracted_code_with_timeout(final_code, full_input)
+                if check_result:
+                    final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                    final_code, test_input=test_input, test_output=test_output
                 )
-                print(f"Final score: {final_score}")
+                    if final_score == 100:
+                        print(f"Nailed this problem!")
+                        best_code == final_code
+                        return best_code, best_score
                 refinement_n += 1
-                if final_score == 100:
-                    print(f"Nailed this problem!")
-                    best_code == final_code
-                    return best_code, best_score
                 
     return best_code, best_score
 
@@ -286,8 +288,9 @@ def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_it
             problem_description = problem["problem_description"]
             input_data = problem["sample_input"]
             expected_output = problem["sample_output"]
+            full_input = problem["full_input"]
             
-            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
+            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, full_input,code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
             
             if best_score > 0:
                 log = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"

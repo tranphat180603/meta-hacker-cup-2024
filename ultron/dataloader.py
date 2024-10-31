@@ -49,6 +49,9 @@ def extract_problem_cases_from_folder(dataset_path):
                 
             with open(os.path.join(root, 'sample_out.txt'), 'r') as sample_out_file:
                 sample_output = sample_out_file.read().strip()
+
+            with open(os.path.join(root, 'full_in.txt'), 'r') as full_input_file:
+                full_input = full_input_file.read().strip()
                 
             # Concatenate the information into a problem description
             problem_description = f"""
@@ -66,7 +69,8 @@ def extract_problem_cases_from_folder(dataset_path):
                 "name": problem_name,  # The folder name is used as the problem name
                 "problem_description": problem_description,
                 "sample_input": sample_input,
-                "sample_output": sample_output
+                "sample_output": sample_output,
+                "full_input": full_input
             })
     
     return problem_cases

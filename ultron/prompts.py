@@ -314,7 +314,7 @@ Task: The generated code has encountered an execution or runtime issue:
 
 {error_message}
 
-Current code:
+Current code and some information:
 '{generated_code}'
 
 The test cases being evaluated:
@@ -357,7 +357,7 @@ Task: The generated code has failed these test cases:
 
 {failed_tests}
 
-Based on the latest code:
+Based on the latest code and some information:
 
 '{generated_code}'
 
