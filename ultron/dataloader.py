@@ -6,6 +6,7 @@ def extract_problem_cases_from_hf(dataset):
     for example in dataset['full']:
         sample_input = example["sample_input"]
         sample_output = example["sample_output"]
+        full_input = example["input"]
         
         # Format the problem description
         problem_description = f"""
@@ -25,7 +26,8 @@ def extract_problem_cases_from_hf(dataset):
             "round": example["round"],
             "problem_description": problem_description,
             "sample_input": sample_input,
-            "sample_output": sample_output
+            "sample_output": sample_output,
+            "full_input": full_input
         })
     return problem_cases
 
