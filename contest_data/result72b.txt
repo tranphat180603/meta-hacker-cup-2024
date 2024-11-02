@@ -1,0 +1,5 @@
+Problem 1/5: Line by Line, Score: 25.0%
+Problem 2/5: Line of Delivery (Part 1), Score: 50.0%
+Problem 3/5: Walk the Line, Score: 100.0%
+Problem 4/5: Line of Delivery (Part 2), Score: 40.0%
+Problem 5/5: Fall in Line, Score: 100.0%
