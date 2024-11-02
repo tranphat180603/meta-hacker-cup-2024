@@ -176,7 +176,7 @@ def request_improvement_dte(model, tokenizer, generated_code, error_message, ana
             reflect_execution_error(generated_code, error_message, analysis, error_history), 
             show_coT=show_coT, 
             system_prompt="""
-Your task is to reflect and propose a change on the Python code by focusing on the specific execution error identified in the error message. 
+Act as an autonomous coding agent tasked with solving the problem effectively. Focus solely on reflecting and propose a change on the Python code by focusing on the specific execution error identified in the error message. 
 
 - Address the line causing the error and prevent similar issues, especially those with multiple occurrences in the error history.
 - Use the test case analysis and error history to improve the code’s robustness.
@@ -199,7 +199,7 @@ def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, ana
             reflect_failed_test(generated_code, failed_tests, analysis, failure_history), 
             show_coT=show_coT, 
             system_prompt="""
-Your task is to reflect and propose a fundamentally new solution to resolve issues arising from the failed test cases. Do not hesitate to try new strategies or alternative approaches, especially if a recurring problem has been identified multiple times.
+Act as an autonomous coding agent tasked with solving the problem effectively. Focus solely on reflecting and propose a fundamentally new solution to resolve issues arising from the failed test cases. Do not hesitate to try new strategies or alternative approaches, especially if a recurring problem has been identified multiple times.
 
 Guidelines:
 1. **Explore New Solutions**: Prioritize creating an entirely new solution that comprehensively addresses the problem. Aim for a fresh perspective rather than making incremental patches to the current code.
@@ -215,25 +215,41 @@ Provide the new solution in JSON format, structured as specified, with no additi
         print(f"Error in request_improvement_dtfc: {str(e)}")
         return None
 
-def request_final_improvement(model, tokenizer, generated_code, refine_problem_understanding, show_coT=False):
+def request_final_improvement(model, tokenizer, generated_code, refine_problem_understanding, timeout_msg ,show_coT=False):
     try:
         if show_coT:
             print("Step 8: Final attempt to improve the code!")
             return model_response(
                 model, 
                 tokenizer, 
-                improve_final_code_efficiency(generated_code, refine_problem_understanding), 
+                improve_final_code_efficiency(generated_code, refine_problem_understanding, timeout_msg), 
                 show_coT=show_coT, 
                 system_prompt="""
-Optimize the code for performance to handle larger inputs efficiently. Focus on:
-- Reducing time complexity by removing nested loops and redundant calculations.
-- Using efficient data structures (e.g., dictionaries, heaps) for faster access.
-- Simplifying logic where possible while maintaining correct functionality.
+The current solution needs transformative changes to handle large inputs effectively. Small, incremental improvements are not enough.
 
-You must response in request JSON format without writing any text out of the JSON format
-"""
+Your goal is to:
+- Rethink the problem approach entirely, aiming for groundbreaking efficiency.
+- Focus on discovering entirely new algorithms, logical simplifications, and optimal data structures to minimize computation.
+- Remove bottlenecks by exploring alternatives to nested loops, brute-force methods, or redundant calculations.
+
+This process is about reimagining the solution, not just minor tweaks. Aim for a revolutionary change in approach.
+
+Please provide your response in the following JSON format, with no extra text outside the JSON:
+{
+  "optimization": {
+    "language": "Python",
+    "previous_code": "The original code here",
+    "optimized_code": "Your new, innovative Python code here that meets the performance requirements",
+    "improvement_explanation": {
+      "summary": "Brief summary of the groundbreaking changes made",
+      "details": "Detailed description of the new approach and why it drastically improves performance, addressing the limitations in the original code."
+    }
+  }
+}
+""",
             )
     except Exception as e:
         print(f"Error in request_final_improvement: {str(e)}")
         return None
+
 

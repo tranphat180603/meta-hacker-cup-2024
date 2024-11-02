@@ -249,32 +249,45 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
         #Fix code
         if failed_cases:  # Handle failed test cases
-            execution_error = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, error_history, show_coT=show_coT)
-            reflection = execution_error
-        elif error:  # Handle execution/runtime errors
-            failed_tests = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, failure_history, show_coT=show_coT)
+            failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), analysis, error_history, show_coT=show_coT)
             reflection = failed_tests
+        elif error:  # Handle execution/runtime errors
+            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, failure_history, show_coT=show_coT)
+            reflection = execution_error
 
         attempts += 1
 
         # If we achieve a perfect score, iterate more with ai-generated tests
         if best_score == 100:
-            print(f"Perfect score achieved on sample_test cases: ")
-            print("Push one more step further, improve the program efficiency!")
             while refinement_n < refinement_num:
-                final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding, show_coT=show_coT)
-                final_code = final_code["optimized_code"]["code"]
-                check_result = run_extracted_code_with_timeout(final_code, full_input)
+                timeout_msg = None
+                print("Perfect score achieved on sample test cases!")
+                print("Push one more step further, improve the program efficiency!")
+                final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding,timeout_msg ,show_coT=show_coT)
+                final_code = final_code["optimization"]["optimized_code"]
+
+                check_result, error = run_extracted_code_with_timeout(final_code, full_input)
+                print(f"Result: {check_result}")
+                
+                # Only evaluate if there’s a valid result from the code execution
                 if check_result:
                     final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                    final_code, test_input=test_input, test_output=test_output
-                )
+                        check_result, test_input=test_input, test_output=test_output
+                    )
                     if final_score == 100:
-                        print(f"Nailed this problem!")
-                        best_code == final_code
+                        print("Nailed this problem!")
+                        best_code = final_code  # Corrected assignment here
                         return best_code, best_score
+                else:
+                    print(f"Error encountered: {error}")
+
+                timeout_msg = error    
+                generated_code = final_code
                 refinement_n += 1
-            print("Code couldn't execute on full inputs")
+            return best_code, best_score
+
+    print("Code couldn't execute on full inputs")
+
                 
     return best_code, best_score
 
@@ -325,11 +338,11 @@ def main():
             print(f"Using model: {base_model_name}")
         # Extract problem cases
         if args.dataset_local_path:  # handle local dataset (folder structured)
+            problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
             if args.local_ds_idx is not None:
                 problem_cases = [problem_cases[args.local_ds_idx]]
                 print(f"Processing specific problem: {problem_cases[0]['name']}")
             else:
-                problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
                 print(f"Processing all {len(problem_cases)} problems in the folder")
         else:  # handle hf dataset
             ds = load_dataset("hackercupai/hackercup")

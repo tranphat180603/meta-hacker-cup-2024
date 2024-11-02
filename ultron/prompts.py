@@ -395,9 +395,39 @@ Provide your analysis in the following JSON format:
 }}
 """
 
-#final step
-def improve_final_code_efficiency(final_code, refine_problem_understanding):
-    return f"""
+def improve_final_code_efficiency(final_code, refine_problem_understanding, timeout_msg=None):
+    if timeout_msg:
+        return f"""
+Here is the final code that needs optimization due to slow performance on larger inputs:
+{final_code}
+
+Issue: The solution is unable to complete execution within acceptable time limits and needs significant optimization to handle full input cases. Here’s the feedback received:
+"{timeout_msg}"
+
+Task: Based on your correct understanding of the problem and the identified performance bottleneck, revise the code to improve its runtime efficiency so that it can handle larger input sizes effectively.
+
+Instructions:
+1. **Identify Inefficiencies**: Examine the code for any sections with nested loops, redundant calculations, or repetitive operations. Focus on areas contributing to high computational cost.
+2. **Optimize Data Structures**: Use more efficient data structures like dictionaries, heaps, or binary search trees where applicable, replacing any costly operations with optimal alternatives.
+3. **Reduce Redundant Calculations**: Consolidate repeated logic, avoid recalculating values, and consider precomputing reusable results where feasible.
+4. **Simplify Logic**: Rewrite sections of the code to minimize operations in critical paths, focusing on reducing overall time complexity.
+
+Provide the Python code in the following JSON format. Note that newlines within the `"optimized_code"` field should be represented by `\\n` to ensure JSON compatibility:
+
+{{
+  "optimization": {{
+    "language": "Python",
+    "previous_code": "{final_code}",
+    "optimized_code": "Your improved Python code here, adjusted to meet the performance requirements",
+    "improvement_explanation": {{
+      "summary": "Summarize the main improvements and any breakthroughs made.",
+      "details": "Explain the specific changes made in the optimized code that improve performance. Describe why these changes are effective and how they address the performance bottleneck noted in the previous code."
+    }}
+  }}
+}}
+"""
+    else:
+        return f"""
 Here is the final code that needs optimization:
 {final_code}
 
@@ -408,19 +438,24 @@ Task: The current solution has passed all sample test cases but needs to be opti
 Your goal is to improve its runtime efficiency so that it can process full test cases within the constraints in your understanding.
 
 Instructions:
-1. Analyze Bottlenecks: Identify any inefficient parts of the code, such as nested loops or redundant calculations.
-2. Optimize Data Structures: Where possible, replace costly operations with efficient data structures (e.g., dictionaries, heaps, binary search trees).
-3. Reduce Redundancies: Remove or simplify repeated calculations, and consider precomputing values where feasible.
-4. Simplify Logic: Rewrite the code to reduce the number of operations in critical sections.
+1. **Analyze Bottlenecks**: Identify any inefficient parts of the code, such as nested loops or redundant calculations.
+2. **Optimize Data Structures**: Where possible, replace costly operations with efficient data structures (e.g., dictionaries, heaps, binary search trees).
+3. **Reduce Redundancies**: Remove or simplify repeated calculations, and consider precomputing values where feasible.
+4. **Simplify Logic**: Rewrite the code to reduce the number of operations in critical sections.
 
-Performance Goals: minimize time complexity to handle larger inputs
 
-You must provide your optimized code in the following JSON format:
+Provide the Python code in the following JSON format. Note that newlines within the `"optimized_code"` field should be represented by `\\n` to ensure JSON compatibility:
 {{
-  "optimized_code": {{
+  "optimization": {{
     "language": "Python",
-    "code": "Your optimized Python code here, ensuring it achieves the performance goals",
-    "optimization_explanation": "Describe the changes made to improve efficiency and why they should achieve better runtime performance on large inputs."
+    "previous_code": "{final_code}",
+    "optimized_code": "Your improved Python code here, adjusted to meet the performance requirements",
+    "improvement_explanation": {{
+      "summary": "Summarize the main improvements and any breakthroughs made.",
+      "details": "Explain the specific changes made in the optimized code that improve performance. Describe why these changes are effective and how they address the performance bottleneck noted in the previous code."
+    }}
   }}
 }}
 """
+
+
