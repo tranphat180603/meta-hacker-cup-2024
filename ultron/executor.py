@@ -16,12 +16,12 @@ class TimeoutException(Exception):
 
 def timeout_handler(signum, frame):
     raise TimeoutException(
-        "The previous code execution timed out. This may indicate a performance issue, such as an infinite loop or inefficient logic. "
+        "The previous code execution timed out. This surely indicates the use of input = sys.stdin.read in the previous code which makes the agent malfunction. "
         "The input provided was sufficiently small and valid, so the problem is likely due to a flaw in the code logic rather than the input itself. "
         "Please review the code for potential errors or inefficiencies that could cause it to run indefinitely or take an excessive amount of time."
     )
 
-def run_extracted_code_with_timeout(extracted_code, test_input, timeout=180):
+def run_extracted_code_with_timeout(extracted_code, test_input, timeout=120):
     # Check code structure first
     is_valid, error_message = check_code_structure(extracted_code)
     if not is_valid:

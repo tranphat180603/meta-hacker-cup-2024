@@ -7,10 +7,16 @@ import time
 import sys
 
 from datasets import load_dataset
+from huggingface_hub import login
+login("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")
+
+
 
 from model import (
     load_model_and_tokenizer,
+    load_image_model_and_tokenizer,
     understanding_problem,
+    understanding_image,
     analyze_test_cases,
     get_refine_understanding,
     generate_solution_ideas,
@@ -74,6 +80,8 @@ def parse_args():
     parser.add_argument("--code_iterations", type=int, default=20, help="Number of code improvement iterations.")
     parser.add_argument("--max_num_retry", type=int, default=5, help="Maximum number of retries for model responses.")
     parser.add_argument("--num_refinement", type=int, default=10, help="Maximum number of retries for model responses.")
+    parser.add_argument("--start_index", type=int, default=0, help="Start index for dataset slicing")
+    parser.add_argument("--end_index", type=int, default=None, help="End index for dataset slicing")
     parser.add_argument("--problem_name", type=str, default=None, help="Specify the name of the problem to solve for hf dataset")
     parser.add_argument("--show_coT", action="store_true", help="Show the Chain of Thought output for debugging.")
     parser.add_argument("--dataset_local_path", type = str, default = "", help = "if specified, open dataset in local machine, problem is formatted the same as online dataset") 
@@ -123,6 +131,8 @@ def retry(func, max_attempts, *args, **kwargs):
         
         if parsed_response is not None and isinstance(parsed_response, dict):
             return parsed_response
+        elif parsed_response is None:
+            print(f"Error parsing json with this e: {parsed_response}")
         else:
             print(f"Error parsing json with this e: {parsed_response}")
 
@@ -131,7 +141,7 @@ def retry(func, max_attempts, *args, **kwargs):
     return None  # Return None to signal failure
 
 # Main function to run the process
-def run_full_process(model, tokenizer,problem_description, test_input, test_output, full_input,code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
+def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_description, test_input, test_output, full_input, img_raw ,code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
     # Step 1: Understand the problem
     understand = retry(understanding_problem, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
     if not understand:
@@ -143,6 +153,11 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
     if not analysis:
         print("Failed parsing JSON for test case analysis.")
         return
+
+    img_understanding = ""
+    img_understanding = understanding_image(img_model, img_tokenizer, problem_description, img_raw, show_coT=show_coT)
+    if not img_understanding:
+        img_understanding = ""
     
     #track code_iterations
     attempts = 0
@@ -159,9 +174,9 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
     #reflect after every iteration
     reflection = ""
-
+    #user self-perception:
     while attempts < code_iterations:
-        print(f"Iterate attempt #{attempts}/{code_iterations}")
+        print(f"Iterate attempt #{attempts + 1}/{code_iterations}")
         # Step 3: Refine understanding
         refine_understanding = retry(
             get_refine_understanding, 
@@ -171,6 +186,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             understand['understanding'], 
             analysis, #all new information from the test case analysis
             reflection,
+            img_understanding,
             show_coT=show_coT
         )
         if not refine_understanding:
@@ -222,11 +238,11 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
             return
 
         generated_code = code_solution['solution_code']['code']
-
-        # Run the generated code
-        score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-            generated_code, test_input=test_input, test_output=test_output
-        )
+        if generated_code:
+            # Run the generated code
+            score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                generated_code, test_input=test_input, test_output=test_output
+            )
         
         if error:
             # Ensure error is a string
@@ -249,7 +265,7 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
 
         #Fix code
         if failed_cases:  # Handle failed test cases
-            failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), analysis, error_history, show_coT=show_coT)
+            failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), refine_understanding, error_history, show_coT=show_coT)
             reflection = failed_tests
         elif error:  # Handle execution/runtime errors
             execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, failure_history, show_coT=show_coT)
@@ -267,7 +283,6 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                 final_code = final_code["optimization"]["optimized_code"]
 
                 check_result, error = run_extracted_code_with_timeout(final_code, full_input)
-                print(f"Result: {check_result}")
                 
                 # Only evaluate if there’s a valid result from the code execution
                 if check_result:
@@ -284,15 +299,14 @@ def run_full_process(model, tokenizer,problem_description, test_input, test_outp
                 timeout_msg = error    
                 generated_code = final_code
                 refinement_n += 1
+            print("Code couldn't execute on full inputs")
             return best_code, best_score
-
-    print("Code couldn't execute on full inputs")
 
                 
     return best_code, best_score
 
 
-def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_iterations, max_num_retry, num_refinement ,show_coT):
+def process_problems_sequentially(model, tokenizer, img_model, img_tokenizer, file ,problem_cases, code_iterations, max_num_retry, num_refinement ,show_coT):
     total_problems = len(problem_cases)
     error_msg = []
     result = []
@@ -303,8 +317,8 @@ def process_problems_sequentially(model, tokenizer, file ,problem_cases, code_it
             input_data = problem["sample_input"]
             expected_output = problem["sample_output"]
             full_input = problem["full_input"]
-            
-            generated_code, best_score = run_full_process(model, tokenizer, problem_description, input_data, expected_output, full_input,code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
+            img_raw = problem['image']
+            generated_code, best_score = run_full_process(model, tokenizer, img_model, img_tokenizer,problem_description, input_data, expected_output, full_input, img_raw, code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
             
             if best_score > 0:
                 log = f"Problem {index + 1}/{total_problems}: {problem['name']}, Score: {best_score}%"
@@ -330,12 +344,16 @@ def main():
     #init model
     base_model_name = args.model_name
     adapter_path = "../adapter/"
+    img_model_name="openbmb/MiniCPM-V-2_6"
     model, tokenizer = load_model_and_tokenizer(base_model_name, adapter_path, lora=args.fine_tuned)
+    img_model, img_tokenizer = load_image_model_and_tokenizer(img_model_name)
     with open(args.out, 'w') as f, Tee(f):
         if args.fine_tuned:
             print(f"Using model: {base_model_name} with Lora adapter fine_tuned by Phat")
         else:
-            print(f"Using model: {base_model_name}")
+            print(f"🚀 Launching central controller: {base_model_name}")
+    
+        print(f"🔍 Initializing wavelength perception: {img_model_name}")
         # Extract problem cases
         if args.dataset_local_path:  # handle local dataset (folder structured)
             problem_cases = extract_problem_cases_from_folder(args.dataset_local_path)
@@ -346,18 +364,18 @@ def main():
                 print(f"Processing all {len(problem_cases)} problems in the folder")
         else:  # handle hf dataset
             ds = load_dataset("hackercupai/hackercup")
-            problem_cases = extract_problem_cases_from_hf(ds)
             if args.problem_name:
-                problem_cases = [problem for problem in problem_cases if problem['name'].lower() == args.problem_name.lower()]
+                problem_cases = extract_problem_cases_from_hf(ds, start_index=args.start_index, end_index=args.end_index, problem_name=args.problem_name)
                 if not problem_cases:
                     print(f"No problem found with the name '{args.problem_name}'")
                     return
                 print(f"Processing specific problem: {problem_cases[0]['name']}")
             else:
-                print(f"Processing all {len(problem_cases)} problems from the dataset")
+                problem_cases = extract_problem_cases_from_hf(ds, start_index=args.start_index, end_index=args.end_index)
+                print(f"Processing {len(problem_cases)} problems from the dataset")
 
         # Process problems sequentially
-        process_problems_sequentially(model, tokenizer, args.result_out,problem_cases, args.code_iterations, args.max_num_retry, args.num_refinement ,args.show_coT)
+        process_problems_sequentially(model, tokenizer, img_model, img_tokenizer , args.result_out, problem_cases, args.code_iterations, args.max_num_retry, args.num_refinement ,args.show_coT)
 
         print("All processing finished.")
 

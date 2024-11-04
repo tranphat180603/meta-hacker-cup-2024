@@ -1,10 +1,15 @@
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed, AutoModel
 from peft import PeftModel, PeftConfig
 import torch
 
+from PIL import Image
+import io
+import base64
+
 from prompts import (
     get_problem_understanding_template,
+    get_image_understanding_prompt,
     analyze_original_test_cases_template,
     get_solution_ideas_template,
     evaluate_solutions_template,
@@ -15,8 +20,23 @@ from prompts import (
     improve_final_code_efficiency
 )
 
-set_seed(42)
 
+# Function to decode base64 image with padding if necessary
+def decode_base64_image(base64_string):
+    if not base64_string:
+        return None  # Return None if the image string is empty
+    
+    # Add padding if needed
+    missing_padding = len(base64_string) % 4
+    if missing_padding:
+        base64_string += '=' * (4 - missing_padding)
+    
+    try:
+        return base64.b64decode(base64_string)
+    except Exception as e:
+        print(f"Error decoding base64 image: {e}")
+        return None
+    
 # Load the model and tokenizer
 def load_model_and_tokenizer(model_name, adapter_path, lora = False):
     assert model_name is not None, "Must specify model_name"
@@ -27,6 +47,17 @@ def load_model_and_tokenizer(model_name, adapter_path, lora = False):
         return merged_model, tokenizer
     return model, tokenizer
 
+# Load the image model and tokenizer
+def load_image_model_and_tokenizer(model_name="openbmb/MiniCPM-V-2_6"):
+    model = AutoModel.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        attn_implementation='sdpa',
+        torch_dtype=torch.bfloat16
+    )
+    model = model.eval().cuda()  # Ensure model is in eval mode and on the correct device
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    return model, tokenizer
 
 # Apply chat template for all messages
 def apply_chat_template(tokenizer, messages):
@@ -54,7 +85,7 @@ def generate_response(model, tokenizer, messages, temperature=0.3, max_new_token
 
 
 # Helper to parse response at each step
-def model_response(model, tokenizer, user_content, temperature=0.3, max_new_tokens=2048,show_coT = False ,system_prompt="You are a helpful assstant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
+def model_response(model, tokenizer, user_content, temperature=1.0, max_new_tokens=2048,show_coT = False ,system_prompt="You are a helpful assstant whose job is to produce only valid JSON format in every response without any additional text, explanations, or comments. You must always produce correct JSON format including comma, parentheses,etc. If asked to provide information, always structure the output in the JSON format specified by the user. Never include any output outside of the JSON format."):
 
     messages = [
         {"role": "system", "content": system_prompt},
@@ -77,9 +108,39 @@ You are an AI assistant specializing in analyzing and structuring programming pr
 Produce only valid JSON based on the provided structure without extra text or explanations. 
 Maintain real-world logical consistency while interpreting the problem, and note any ambiguities or inconsistencies in the description. 
 (For example: a pair of chopsticks can't be 1 chopstick, a dog can't have 3 legs)
-        """, temperature = 0.3)
+        """)
     except Exception as e:
         print(f"Error in understanding_problem: {str(e)}")
+        return None
+
+def understanding_image(img_model, tokenizer, problem_description, img_raw, show_coT=False):
+    try:
+        # Generate the question using the problem description
+        question = get_image_understanding_prompt(problem_description)
+        
+        # Decode the image
+        image_bytes = decode_base64_image(img_raw)
+        if image_bytes is None:
+            image_bytes = ""
+            return image_bytes
+        
+        # Load and convert the image
+        image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
+        
+        # Prepare messages for the model
+        msgs = [{'role': 'user', 'content': [image, question]}]
+        
+        # Query the model
+        res = img_model.chat(image=None, msgs=msgs, tokenizer=tokenizer)
+        
+        # Display the response if needed
+        if show_coT:
+            print(f"Image understanding response:\n{res}")
+        
+        return res  # Return the model's response with image information
+    
+    except Exception as e:
+        print(f"Error in understanding_image: {str(e)}")
         return None
 
 def analyze_test_cases(model, tokenizer, problem_description, show_coT=False):
@@ -95,21 +156,25 @@ Produce only valid JSON based on the provided structure without extra text or ex
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
 
-def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, reflection, show_coT=False):
+def get_refine_understanding(model, tokenizer, problem_understanding, test_case_analysis, reflection, img_understanding,show_coT=False):
     try:
         if show_coT:
             print("Step 3: Refine problem understandings: ")
-        return model_response(model, tokenizer, refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection=reflection), show_coT=show_coT, system_prompt="""
-Refine the problem understanding by integrating insights from test case analysis. 
-If additional reflection from previous iterations is available, include these insights to update the problem understanding further.
+        return model_response(model, tokenizer, refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection=reflection, img_understanding = img_understanding), show_coT=show_coT, system_prompt="""
+Task: Refine your understanding of the problem by integrating key insights from various sources.
+Your primary objective is to create a cohesive understanding by combining:
+1. The initial problem statement and constraints.
+2. Observations from analyzing test cases.
+3. Important visual details from the image relevant to the problem.
 
-Instructions:
-- Use the test case analysis to update constraints, identify edge cases, and correct any initial misunderstandings.
-- If reflection data is provided, use it to identify recurring patterns or issues from past attempts, and make adjustments accordingly.
+Consider:
+- Look for any visual patterns or elements in the image that could impact or provide constraints to the solution.
+- Apply patterns identified from test case analysis to find possible edge cases or hidden requirements.
+- If there are insights from previous reflections, apply them to avoid repeating common errors.
 
 Output Requirements:
 - Provide the refined problem understanding in JSON format only, ensuring all updates are clearly reflected.
-""", temperature=0.7)
+""")
     except Exception as e:
         print(f"Error in analyze_test_cases: {str(e)}")
         return None
@@ -122,7 +187,8 @@ def generate_solution_ideas(model, tokenizer, problem_description, test_case_ana
 As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
 Think outside the box while ensuring all solutions can pass the provided test cases.
 Aim for a mix of conventional and novel approaches, considering efficiency, scalability, and unique algorithmic techniques.
-        """, temperature = 0.8)
+Output only valid JSON in the specified format.
+        """)
     except Exception as e:
         print(f"Error in generate_solution_ideas: {str(e)}")
         return None
@@ -135,7 +201,7 @@ def evaluate_solutions_f(model, tokenizer, solution_ideas, refine_problem_unders
 Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
 Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
 Provide a concise, objective assessment in the specified JSON format only.
-        """, temperature = 0.4)
+        """)
     except Exception as e:
         print(f"Error in evaluate_solutions_f: {str(e)}")
         return None
@@ -158,9 +224,8 @@ Guidelines:
 3. Structure code logically, using sub-functions where appropriate to streamline logic and readability.
 4. Output only valid JSON in the specified format.
 
-Your primary objective is to produce correct and efficient code that satisfies the problem requirements.
+Output only valid JSON in the specified format.
             """,
-            temperature=0.5
         )
     except Exception as e:
         print(f"Error in generate_python_code: {str(e)}")
@@ -183,20 +248,19 @@ Act as an autonomous coding agent tasked with solving the problem effectively. F
 
 Respond in JSON format only, with the corrected code and explanations according to the provided structure.
 """, 
-            temperature = 0.5
         )
     except Exception as e:
         print(f"Error in request_improvement_dte: {str(e)}")
         return None
 
-def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, analysis, failure_history, show_coT=False):  # Due to failed cases (logic/approach issue)
+def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, refine_problem_understanding, failure_history, show_coT=False):  # Due to failed cases (logic/approach issue)
     try:
         if show_coT:
             print("Step 7.2: Iterating on failed test cases:")
         return model_response(
             model, 
             tokenizer, 
-            reflect_failed_test(generated_code, failed_tests, analysis, failure_history), 
+            reflect_failed_test(generated_code, failed_tests, refine_problem_understanding, failure_history), 
             show_coT=show_coT, 
             system_prompt="""
 Act as an autonomous coding agent tasked with solving the problem effectively. Focus solely on reflecting and propose a fundamentally new solution to resolve issues arising from the failed test cases. Do not hesitate to try new strategies or alternative approaches, especially if a recurring problem has been identified multiple times.
@@ -204,12 +268,9 @@ Act as an autonomous coding agent tasked with solving the problem effectively. F
 Guidelines:
 1. **Explore New Solutions**: Prioritize creating an entirely new solution that comprehensively addresses the problem. Aim for a fresh perspective rather than making incremental patches to the current code.
 2. **Address Recurring Issues**: If an issue has occurred frequently, rethink your approach entirely to avoid previous pitfalls.
-3. **Ensure All Test Cases Pass**: Design the solution to handle all failed test cases and cover potential edge cases robustly.
-4. **Optimize for Efficiency and Robustness**: The solution should be both efficient and capable of handling larger inputs or edge cases.
 
 Provide the new solution in JSON format, structured as specified, with no additional comments or explanations.
 """, 
-            temperature=0.9
         )
     except Exception as e:
         print(f"Error in request_improvement_dtfc: {str(e)}")

@@ -1,17 +1,25 @@
 import os
 
 # Extract problem cases and include sample_input and sample_output in the problem_description
-def extract_problem_cases_from_hf(dataset):
+def extract_problem_cases_from_hf(dataset, start_index=0, end_index=None, problem_name=None):
     problem_cases = []
-    for example in dataset['full']:
-        sample_input = example["sample_input"]
-        sample_output = example["sample_output"]
-        full_input = example["input"]
-        
+    data_subset = dataset['full']
+    end_index = end_index or len(data_subset['name'])  # Set end_index if None
+
+    for idx in range(start_index, end_index):
+        # Check if problem_name is specified and if it matches the current problem
+        if problem_name and data_subset["name"][idx].lower() != problem_name.lower():
+            continue
+
+        sample_input = data_subset['sample_input'][idx]
+        sample_output = data_subset['sample_output'][idx]
+        full_input = data_subset['input'][idx]
+        img_raw = data_subset['images'][idx][0] if data_subset['images'][idx] else ""  # Extract first image if available
+
         # Format the problem description
         problem_description = f"""
-{example['statement']}
-        
+{data_subset['statement'][idx]}
+
 ### Sample Input
 {sample_input}
 
@@ -19,17 +27,26 @@ def extract_problem_cases_from_hf(dataset):
 {sample_output}
 """
 
-        # Append the formatted problem description to the list of problems
+        # Append the formatted problem case
         problem_cases.append({
-            "name": example["name"],
-            "year": example["year"],
-            "round": example["round"],
+            "name": data_subset["name"][idx],
+            "year": data_subset["year"][idx],
+            "round": data_subset["round"][idx],
             "problem_description": problem_description,
+            "image": img_raw,  # Pass the raw image string here
             "sample_input": sample_input,
             "sample_output": sample_output,
             "full_input": full_input
         })
+
+        # If problem_name is specified, exit after finding the first match to save time
+        if problem_name:
+            break
+
     return problem_cases
+
+
+
 
 
 def extract_problem_cases_from_folder(dataset_path):
