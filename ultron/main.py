@@ -141,42 +141,38 @@ def retry(func, max_attempts, *args, **kwargs):
     return None  # Return None to signal failure
 
 # Main function to run the process
-def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_description, test_input, test_output, full_input, img_raw ,code_iterations=5, max_num_retry=5, refinement_num = 5, show_coT=False):
+def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_description, test_input, test_output, full_input, img_raw ,code_iterations=5, max_num_retry=5, refinement_num=5, show_coT=False):
     # Step 1: Understand the problem
     understand = retry(understanding_problem, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
     if not understand:
         print("Failed parsing JSON for problem understanding.")
         return
 
-    # Step 2: Analyze test cases
-    analysis = retry(analyze_test_cases, max_num_retry, model, tokenizer, problem_description, show_coT=show_coT)
-    if not analysis:
-        print("Failed parsing JSON for test case analysis.")
-        return
-
-    img_understanding = ""
-    img_understanding = understanding_image(img_model, img_tokenizer, problem_description, img_raw, show_coT=show_coT)
-    if not img_understanding:
-        img_understanding = ""
+    img_understanding = understanding_image(img_model, img_tokenizer, problem_description, img_raw, show_coT=show_coT) or ""
     
-    #track code_iterations
+    # Track attempts and best results
     attempts = 0
-    refinement_n = 0
-    #track best score and best code
     best_score = 0
     best_code = ""
     final_code = ""
     final_score = 0
 
-    #track the path we have gone through
+    # Track the path we've gone through
     error_history = {}
-    failure_history = {}
+    failure_history = {}  # Merged dictionary to track both failed cases and solution paths
 
-    #reflect after every iteration
+    # Reflect after every iteration
     reflection = ""
-    #user self-perception:
+
     while attempts < code_iterations:
         print(f"Iterate attempt #{attempts + 1}/{code_iterations}")
+
+        # Step 2: Analyze test cases
+        analysis = retry(analyze_test_cases, max_num_retry, model, tokenizer, problem_description, reflection, show_coT=show_coT)
+        if not analysis:
+            print("Failed parsing JSON for test case analysis.")
+            return
+
         # Step 3: Refine understanding
         refine_understanding = retry(
             get_refine_understanding, 
@@ -184,7 +180,7 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             model, 
             tokenizer,
             understand['understanding'], 
-            analysis, #all new information from the test case analysis
+            analysis,
             reflection,
             img_understanding,
             show_coT=show_coT
@@ -238,6 +234,8 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             return
 
         generated_code = code_solution['solution_code']['code']
+        curr_solution = code_solution['solution_code']['general_formula_update']
+        
         if generated_code:
             # Run the generated code
             score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
@@ -245,18 +243,16 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             )
         
         if error:
-            # Ensure error is a string
             error = str(error)
             error_history[error] = error_history.get(error, 0) + 1
             if show_coT:
                 print(f"Execution error: {error} (Occurred {error_history[error]} times)")
         elif failed_cases:
-            # Convert failed_cases list to a tuple or formatted string for hashing
-            failed_cases_key = str(failed_cases)  # Or use str(failed_cases) to convert to a string
-            failure_history[failed_cases_key] = failure_history.get(failed_cases_key, 0) + 1
+            # Use a combined key of failed cases and current solution formula to track failure history
+            combined_key = (str(failed_cases), curr_solution)
+            failure_history[combined_key] = failure_history.get(combined_key, 0) + 1
             if show_coT:
-                print(f"Failed cases: {failed_cases} (Occurred {failure_history[failed_cases_key]} times)")
-
+                print(f"Failed cases: {failed_cases} with solution '{curr_solution}' (Occurred {failure_history[combined_key]} times)")
 
         # If this score is better than the previous best, update the best result
         if score > best_score:
@@ -265,10 +261,10 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
 
         #Fix code
         if failed_cases:  # Handle failed test cases
-            failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), refine_understanding, error_history, show_coT=show_coT)
+            failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), refine_understanding, failure_history, show_coT=show_coT)
             reflection = failed_tests
         elif error:  # Handle execution/runtime errors
-            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, failure_history, show_coT=show_coT)
+            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, error_history, show_coT=show_coT)
             reflection = execution_error
 
         attempts += 1
@@ -302,7 +298,6 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             print("Code couldn't execute on full inputs")
             return best_code, best_score
 
-                
     return best_code, best_score
 
 

@@ -90,13 +90,6 @@ Please provide your analysis in the following JSON format:
         "implication": "How this affects the solution approach",
         "validation_criteria": "How to verify if this insight is correctly applied"
       }}
-    ],
-    "edge_cases": [
-      {{
-        "scenario": "Description of edge case visible in image",
-        "considerations": "What needs to be handled for this case",
-        "example": "Visual example from image if available"
-      }}
     ]
   }}
 }}
@@ -110,7 +103,23 @@ Focus on capturing:
 6. Any mathematical or logical patterns that emerge from the visual representation
 """
 
-def analyze_original_test_cases_template(problem_description):
+def analyze_original_test_cases_template(problem_description, reflection=""):
+    reflection_section = f"""
+Here is the reflection from previous iterations:
+'{reflection}'
+
+Instructions:
+- Use the insights from the reflection to identify any previous issues, patterns, or constraints that were missed.
+- Incorporate these insights into your analysis to avoid repeating the same mistakes.
+- Make adjustments to your interpretation of the test case based on what was learned from previous attempts.
+""" if reflection else ""
+
+    changes_based_on_reflection_field = """
+  "changes_based_on_reflection": [
+    "Summarize updates made based on reflection insights."
+  ],
+  """ if reflection else ""
+
     return f"""
 Task: Based on the problem description: 
 
@@ -118,7 +127,7 @@ Task: Based on the problem description:
 
 your job is to analyze the original test case input and output, map each component to its corresponding variable from the problem description, and explain how these inputs lead to the specified output based on the logic and constraints of the problem.
 
-You should start by identifying the format of the test cases and specifying the structure of the input and output.
+Choose only the first test case to analyze.
 
 **Clarification about Input Structure**:
 - The input may consist of multiple test cases, and for each test case, variables can appear on the same line or different lines.
@@ -133,14 +142,15 @@ You should start by identifying the format of the test cases and specifying the 
     Line 2: traveler_1 time 
     Line 3: traveler_2 time 
     ...
-  Test Case 2: values or variables as per the problem
-  ...
 
 - Output:
   Expected output format specified by the problem (e.g., Case #1: YES, result values, etc.). 
 
+{reflection_section}
+
 **Provide the analysis in the following generalized JSON structure**:
 {{
+  {changes_based_on_reflection_field}
   "format_description": "Describe the input format of the test cases, specifying the structure of values in each line for the first test case.",
   "first_test_case_analysis": {{
     "input": {{
@@ -166,38 +176,54 @@ You should start by identifying the format of the test cases and specifying the 
       "variable_name": "Describe each variable's role in the problem based on its usage in the first test case."
     }},
     "problem_solving_hints": [
-      "List hints or strategies derived from the first test case for approaching this problem."
+      "List hints or strategies derived from key_observations for approaching this problem."
     ],
-    "general_formula": "If applicable, provide a general formula or rule observed from the first test case."
+    "general_formula": "If applicable, provide a general formula or rule observed from problem_solving_hints and key_observations."
   }}
 }}
 
 Ensure that your analysis in the 'test_case_reflection' section captures general insights that go beyond the specific example, providing patterns and hints applicable to other cases.
-
-Ensure that your analysis in the 'test_case_reflection' section captures general insights about the problem that go beyond individual test cases. This should include patterns observed across all test cases, important considerations for solving the problem efficiently, and any key relationships between variables that become apparent from analyzing multiple examples.
 """
 
-
 def refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection="", img_understanding=""):
-    # Basic structure when no reflection or image understanding is provided
-    if not reflection and not img_understanding:
-        return f"""
-Task: Refine the problem understanding based on test case analysis. Identify any new insights, corrections, or adjustments needed.
+    reflection_section = f"""
+Here is the reflection from previous iterations:
+'{reflection}'
+""" if reflection else ""
+
+    img_understanding_section = f"""
+Here is the image understanding:
+'{img_understanding}'
+""" if img_understanding else ""
+
+    # Modify the general_formula_update field to include reflection if provided
+    general_formula_update = (
+        f"Update the general formula if applicable based on '{test_case_analysis.get('test_case_reflection', {})}'"
+        + (f" and reflection insights." if reflection else "")
+    )
+
+    return f"""
+Task: Refine the problem understanding based on test case analysis{', reflection insights' if reflection else ''}{', and image understanding' if img_understanding else ''}.
 
 Consider:
 - Missed constraints or nuances.
 - Observed input-output structures in the test cases.
-- Assume initial ideas were mostly incorrect; base updates on the test case analysis.
+{'- Key takeaways or patterns identified in the reflection.' if reflection else ''}
+{'- Visual insights related to the problem’s structure, patterns, or components.' if img_understanding else ''}
+- Assume initial ideas were mostly incorrect; base updates on the combined insights.
 
 Here is the original understanding:
 '{problem_understanding}'
 
 Here is the test case analysis:
 '{test_case_analysis}'
+{reflection_section}{img_understanding_section}
 
 Provide the refined problem understanding in JSON format:
 {{
   "refined_problem_understanding": {{
+    {"changes_based_on_reflection": ["Summarize updates made based on reflection insights."] if reflection else ""}
+    {"image_insights": ["Summarize specific updates based on image insights."] if img_understanding else ""}
     "goal": "State the refined objective of the problem.",
     "updated_constraints": "List updated constraints and any new limitations discovered.",
     "test_cases_update": {{
@@ -205,148 +231,13 @@ Provide the refined problem understanding in JSON format:
       "output_format": "Update the output format if changed."
     }},
     "important_ideas_update": [
-      "List new or corrected important ideas based on test case analysis."
+      "List new or corrected important ideas based on test case analysis{', reflection,' if reflection else ''}{' and image insights' if img_understanding else ''}."
     ],
-    "general_formula_update": "Update the general formula if applicable based on test case analysis.",
     "difficulty_assessment_update": {{
       "updated_difficulty": "Reassess the problem difficulty (easy, medium, hard, super hard).",
       "justification": "Explain the reasoning for the updated difficulty."
-    }}
-  }}
-}}
-
-"""
-    # Structure when only reflection is provided
-    elif reflection and not img_understanding:
-        return f"""
-Task: Refine the problem understanding by integrating insights from test case analysis and reflection.
-
-Consider:
-- Key takeaways or patterns identified in the reflection.
-- Constraints or nuances observed from test cases.
-- Make any necessary adjustments based on insights from both reflection and test case analysis.
-
-Here is the original understanding:
-'{problem_understanding}'
-
-Here is the test case analysis:
-'{test_case_analysis}'
-
-Here is the reflection from previous iterations:
-'{reflection}'
-
-Provide the refined problem understanding in JSON format:
-{{
-  "refined_problem_understanding": {{
-    "changes_based_on_reflection": [
-      "Summarize updates made based on reflection insights."
-    ],
-    "goal": "State the refined objective of the problem based on the combined insights.",
-    "updated_constraints": "List updated constraints identified from reflection and test case analysis.",
-    "test_cases_update": {{
-      "input_format": "Describe any updates to input format.",
-      "output_format": "Describe any updates to output format."
     }},
-    "important_ideas_update": [
-      "List new or corrected important ideas based on test case analysis and reflection."
-    ],
-    "general_formula_update": "Update general formula if applicable based on test case and reflection insights.",
-    "difficulty_assessment_update": {{
-      "updated_difficulty": "Reassess the difficulty level based on insights.",
-      "justification": "Provide reasoning for the updated difficulty."
-    }}
-  }}
-}}
-"""
-
-    # Structure when only image understanding is provided
-    elif img_understanding and not reflection:
-        return f"""
-Task: Refine the problem understanding by integrating insights from test case analysis and relevant image details.
-
-Consider:
-- Visual insights related to the problem’s structure, patterns, or components.
-- Observed constraints or nuances in the test cases.
-- Assume initial ideas were mostly incorrect; base updates on test cases and image details.
-
-Here is the original understanding:
-'{problem_understanding}'
-
-Here is the test case analysis:
-'{test_case_analysis}'
-
-Here is the image understanding:
-'{img_understanding}'
-
-Provide the refined problem understanding in JSON format:
-{{
-  "refined_problem_understanding": {{
-    "image_insights": [
-      "Summarize specific updates based on image insights."
-    ],
-    "goal": "State the refined objective, incorporating visual and test case insights.",
-    "updated_constraints": "List any revised constraints observed.",
-    "test_cases_update": {{
-      "input_format": "Describe any updates to input format.",
-      "output_format": "Describe any updates to output format."
-    }},
-    "important_ideas_update": [
-      "List important ideas based on test case and image insights."
-    ],
-    "general_formula_update": "Update general formula if applicable, using new insights.",
-    "difficulty_assessment_update": {{
-      "updated_difficulty": "Reassess difficulty based on insights.",
-      "justification": "Explain the reasoning for this assessment."
-    }}
-  }}
-}}
-"""
-
-    # Structure when both reflection and image understanding are provided
-    else:
-        return f"""
-Task: Refine the problem understanding by integrating insights from test case analysis, reflection, and image understanding.
-
-Consider:
-- Reflection insights that highlight recurring issues or patterns from past attempts.
-- Visual insights related to the problem’s structure or relevant components.
-- Observed constraints or nuances in the test cases.
-
-Here is the original understanding:
-'{problem_understanding}'
-
-Here is the test case analysis:
-'{test_case_analysis}'
-
-Here is the reflection:
-'{reflection}'
-
-Here is the image understanding:
-'{img_understanding}'
-
-Provide the refined problem understanding in JSON format:
-{{
-  "refined_problem_understanding": {{
-    "changes_based_on_reflection": [
-      "Summarize updates based on reflection insights."
-    ],
-    "image_insights": [
-      "Summarize updates based on image understanding."
-    ],
-    "goal": "State the refined objective of the problem.",
-    "updated_constraints": "List any updated constraints from combined insights.",
-    "test_cases_update": {{
-      "input_format": "Update the input format based on insights.",
-      "output_format": "Update the output format based on insights."
-    }},
-    "important_ideas_update": [
-      "List important ideas based on test case, reflection, and image insights."
-    ],
-    "general_formula_update": "Update the general formula if applicable, based on combined insights.",
-    "difficulty_assessment_update": {{
-      "updated_difficulty": "Reassess the difficulty based on all insights.",
-      "justification": "Provide reasoning for the updated difficulty assessment."
-    }}
+    "general_formula_update": "{general_formula_update}"
   }}
 }}
 """
@@ -364,9 +255,12 @@ and analysis of the test cases:
 
 come up with {num_solutions} ideas that can pass all test cases (original and AI-generated). 
 
-Provide the the ideas in valid JSON format following the structure below.
+Use the existing general formula from `refine_problem_understanding` to maintain consistency in the solution approach.
+
+Provide the ideas in valid JSON format following the structure below.
 Note that: there must not be any text outside of the JSON format for validity!
 {{
+  "general_formula_update": Rewrite exactly like the formula here "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
   "solutions": [
     {{
       "name": "Give the name or category of the first approach.",
@@ -398,6 +292,7 @@ Guidelines:
 Provide your evaluation in the following JSON format:
 {{
     "selected_solution": {{
+        "general_formula_update": Rewrite exactly what you see here: "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
         "solution_name": "The name of the chosen solution",
         "justification": {{
             "goal_alignment": "Explain how the solution addresses the main goal of the problem: \"{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal provided')}\".",
@@ -407,15 +302,9 @@ Provide your evaluation in the following JSON format:
             "time_efficiency": "Provide the estimated time complexity and evaluate if it's suitable given the constraints.",
             "space_efficiency": "Provide the estimated space complexity and evaluate if it's efficient."
         }},
-        "tradeoffs": {{
-            "simplicity_vs_efficiency": "Explain any trade-offs between simplicity and efficiency, particularly considering the difficulty level (\"{refine_problem_understanding.get('refined_problem_understanding', {}).get('difficulty_assessment_update', 'No assessment')}\")."
-        }},
-        "improvements": "Suggest any future improvements or optimizations to further enhance the solution."
     }}
 }}
-
 """
-
 
 def get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding):
     return f"""
@@ -440,7 +329,7 @@ Code generation guidelines:
 6. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
 ##IMPORTANT:***
-IN ANY GIVEN CIRCUSTANCES, MUST NEVER use `sys.stdin` or `input = sys.stdin.read` since it will definitely affect the performance of the process!
+IN ANY GIVEN CIRCUMSTANCES, MUST NEVER use `sys.stdin` or `input = sys.stdin.read` since it will definitely affect the performance of the process!
 
 The output must always follow this example structure:
 Case #1: YES
@@ -453,6 +342,7 @@ Provide the Python code in the following JSON format. Note that newlines within 
 
 {{
   "solution_code": {{
+    "general_formula_update": Rewrite exactly what you see here "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
     "sample_input": "Extract the correct first test case input",
     "sample_output": "Expected output for the first test case",
     "language": "Python",
@@ -461,9 +351,7 @@ Provide the Python code in the following JSON format. Note that newlines within 
     "description": "Brief explanation of how the code implements the solution."
   }}
 }}
-
 """
-
 
 def reflect_execution_error(generated_code, error_message, test_case_analysis, error_history):
     return f"""
@@ -504,12 +392,21 @@ Provide your analysis in the JSON format below, focusing on clearly articulating
 """
 
 
-
 def reflect_failed_test(generated_code, failed_tests, refine_problem_understanding, failure_history):
-    return f"""
-Task: Analyze the test failures and provide comprehensive insights for improvement.
+    failure_history_section = ""
+    if failure_history:
+        failure_history_section = f"""
+Failure History:
+Each entry below includes a unique combination of previous failed cases and the solution formula that led to failure, along with a count of how often this specific failure occurred across different iterations.
+Use this information to identify patterns, avoid reusing approaches that frequently fail, and prioritize developing a fundamentally different strategy.
 
-Failed Test Cases:
+{failure_history}
+"""
+
+    return f"""
+Task: Carefully analyze the failed test cases and failure history. Identify recurring patterns, underlying logic issues, and constraints that may be causing these failures. Your goal is to provide a comprehensive reflection that offers insights for significant improvement and adaptation to avoid repeating similar mistakes.
+
+This iteration fail on these tests:
 {failed_tests}
 
 Current Code:
@@ -518,58 +415,55 @@ Current Code:
 Problem Understanding:
 {refine_problem_understanding}
 
-Failure History:
-{failure_history}
+{failure_history_section}
 
-Provide your analysis in the JSON format below:
+Instructions:
+- Examine each failed case in `failure_history` for patterns, such as recurring logic issues or missed constraints.
+- Use the occurrence counts to identify the most frequent failures and prioritize redesigning these parts of the approach.
+- Develop a new strategy that differs fundamentally from previously failed approaches recorded in `failure_history`.
+
+Reflect on the issues in JSON format, capturing the core issues, any new or alternative approaches suggested, and specific changes for future solutions.
 
 {{
-  "test_case_analysis": {{
-    "failed_cases": [
+  "reflection": {{
+    "patterns_in_failures": [
       {{
-        "input": "The input that caused failure",
-        "expected": "Expected output",
-        "actual": "Actual output",
-        "pattern": "Pattern this failure represents (e.g., edge case, boundary condition)"
+        "pattern_description": "Describe any repeating patterns or issues observed across failed cases.",
+        "examples": [
+          "Provide examples of test cases where this pattern occurred.",
+          "Include failed cases like those mentioned in failure history to support the pattern."
+        ]
       }}
     ],
-    "failure_categorization": {{
-      "type": "Type of failure (logic error, constraint handling)",
-      "scope": "Local to specific cases or global issue",
-      "frequency": "New or recurring pattern"
+    "revised_strategy": [
+      {{
+        "approach": "Summarize a new or adapted approach to address the failures identified, avoiding previously used failing solutions.",
+        "reasoning": "Explain why this approach may be more effective than previous attempts.",
+        "specific_steps": "List specific steps or adjustments needed to implement the approach."
+      }}
+    ],
+    "solution_revision": {{
+      "core_logic_issues": [
+        {{
+          "component": "Component or function causing issue",
+          "current_approach": "Current code logic that led to failure",
+          "proposed_fix": "Updated or new code snippet that addresses the failure, avoiding reuse of solutions that have previously failed."
+        }}
+      ]
+    }},
+    "learning_points": {{
+      "insights": [
+        {{
+          "insight": "Detailed explanation of what was learned from analyzing the patterns and issues.",
+          "application": "How this insight will be applied in future solutions to avoid repeating similar mistakes."
+        }}
+      ]
     }}
-  }},
-  "solution_revision": {{
-    "core_logic_issues": [
-      {{
-        "component": "Component causing issue",
-        "current_approach": "Current code logic",
-        "proposed_fix": "Updated code snippet with correction"
-      }}
-    ]
-  }},
-  "implementation_plan": {{
-    "priority_fixes": [
-      {{
-        "component": "Component to fix",
-        "approach": "How to fix",
-        "validation_steps": "Specific steps to confirm the fix works (test cases to run, expected output)"
-      }}
-    ]
-  }},
-  "learning_points": {{
-    "insights": [
-      {{
-        "insight": "Detailed insight learned from failure",
-        "application": "How to apply this insight in future tasks"
-      }}
-    ]
   }}
 }}
 
-Note: Provide detailed, specific information rather than generic observations. Focus on actionable insights that directly address the failed test cases.
+Note: Provide specific information rather than general observations. Each component should be unique to the analysis and focused on breaking recurring failure patterns. Aim for actionable, explorative insights that directly address the failed test cases and encourage the generation of varied approaches.
 """
-
 
 def improve_final_code_efficiency(final_code, refine_problem_understanding, timeout_msg=None):
     if timeout_msg:
