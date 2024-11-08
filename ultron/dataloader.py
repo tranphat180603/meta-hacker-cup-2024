@@ -88,6 +88,7 @@ def extract_problem_cases_from_folder(dataset_path):
                 "name": problem_name,  # The folder name is used as the problem name
                 "problem_description": problem_description,
                 "sample_input": sample_input,
+                "image": "",
                 "sample_output": sample_output,
                 "full_input": full_input
             })

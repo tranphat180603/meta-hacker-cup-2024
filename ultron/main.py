@@ -148,7 +148,12 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
         print("Failed parsing JSON for problem understanding.")
         return
 
-    img_understanding = understanding_image(img_model, img_tokenizer, problem_description, img_raw, show_coT=show_coT) or ""
+    img_understanding = ""
+    if img_raw:
+        img_understanding = retry(understanding_image, max_num_retry, img_model, img_tokenizer, problem_description, img_raw, show_coT=show_coT)
+        if not img_understanding:
+            print("Failed parsing JSON for image understanding.")
+            return
     
     # Track attempts and best results
     attempts = 0
@@ -166,6 +171,8 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
 
     #track code refinement
     refinement_n = 0
+
+    is_first_iteration = True
     while attempts < code_iterations:
         print(f"Iterate attempt #{attempts + 1}/{code_iterations}")
 
@@ -184,12 +191,14 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             understand, 
             analysis,
             reflection,
-            img_understanding,
+            img_understanding if is_first_iteration else "",
             show_coT=show_coT
         )
         if not refine_understanding:
             print("Failed parsing JSON for refining understanding.")
             return
+
+        is_first_iteration = False
 
         # Step 4: Generate solution ideas
         solutions = retry(
@@ -244,30 +253,49 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
                 generated_code, test_input=test_input, test_output=test_output
             )
         
-        if error:
-            error = str(error)
-            error_history[error] = error_history.get(error, 0) + 1
-            if show_coT:
-                print(f"Execution error: {error} (Occurred {error_history[error]} times)")
-        elif failed_cases:
-            # Use a combined key of failed cases and current solution formula to track failure history
-            combined_key = (str(failed_cases), curr_solution)
-            failure_history[combined_key] = failure_history.get(combined_key, 0) + 1
-            if show_coT:
-                print(f"Failed cases: {failed_cases} with solution '{curr_solution}' (Occurred {failure_history[combined_key]} times)")
-
         # If this score is better than the previous best, update the best result
         if score > best_score:
             best_score = score
             best_code = generated_code
 
-        #Fix code
-        if failed_cases:  # Handle failed test cases
+        #fix code
+        if error:
+            error = str(error)
+            error_history[error] = error_history.get(error, 0) + 1
+            if show_coT:
+                print(f"Execution error: {error} (Occurred {error_history[error]} times)")
+
+            # Separate loop for fixing code errors
+            fix_attempts = 0
+            while fix_attempts < max_num_retry:
+                print(f"Fixing code attempt #{fix_attempts + 1}/{max_num_retry}")
+                execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution, error, analysis, error_history, show_coT=show_coT)
+
+                # Generate and evaluate the fixed code
+                fixed_code = execution_error['solution_code']['code']
+                if fixed_code:
+                    fix_score, error, _, failed_cases = evaluate_generated_code_on_test_cases(
+                        fixed_code, test_input=test_input, test_output=test_output
+                    )
+
+                    # Exit if failed_cases is encountered
+                    if failed_cases:
+                        break  # Break out to handle `failed_cases` in the main loop
+
+                    # If fixed code improves, use it in main loop
+                    if fix_score > score:
+                        best_code = fixed_code
+                        best_score = fix_score
+                        break  # Exit fix loop if score improved
+                fix_attempts += 1
+        if failed_cases:
+            # Use a combined key of failed cases and current solution formula to track failure history
+            combined_key = (str(failed_cases), curr_solution)
+            failure_history[combined_key] = failure_history.get(combined_key, 0) + 1
+            if show_coT:
+                print(f"Failed cases: {failed_cases} with solution '{curr_solution}' (Occurred {failure_history[combined_key]} times)")
             failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), refine_understanding, failure_history, show_coT=show_coT)
             reflection = failed_tests
-        elif error:  # Handle execution/runtime errors
-            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution, error, analysis, error_history, show_coT=show_coT)
-            reflection = execution_error
 
         attempts += 1
 
@@ -326,7 +354,10 @@ def process_problems_sequentially(model, tokenizer, img_model, img_tokenizer, fi
             input_data = problem["sample_input"]
             expected_output = problem["sample_output"]
             full_input = problem["full_input"]
-            img_raw = problem['image']
+            if problem['image']:
+                img_raw = problem['image']
+            else:
+                img_raw = None
             generated_code, best_score = run_full_process(model, tokenizer, img_model, img_tokenizer,problem_description, input_data, expected_output, full_input, img_raw, code_iterations, max_num_retry, num_refinement ,show_coT=show_coT)
             
             if best_score > 0:

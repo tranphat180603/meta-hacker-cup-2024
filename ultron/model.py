@@ -47,17 +47,25 @@ def load_model_and_tokenizer(model_name, adapter_path, lora = False):
         return merged_model, tokenizer
     return model, tokenizer
 
-# Load the image model and tokenizer
+# Load the image model and tokenizer with a specified seed for reproducibility
 def load_image_model_and_tokenizer(model_name="openbmb/MiniCPM-V-2_6"):
+    
+    # Load model
     model = AutoModel.from_pretrained(
         model_name,
         trust_remote_code=True,
         attn_implementation='sdpa',
         torch_dtype=torch.bfloat16
     )
-    model = model.eval().cuda()  # Ensure model is in eval mode and on the correct device
+    
+    # Ensure model is in eval mode and moved to the GPU
+    model = model.eval().cuda()
+    
+    # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    
     return model, tokenizer
+
 
 # Apply chat template for all messages
 def apply_chat_template(tokenizer, messages):
@@ -246,24 +254,19 @@ Respond in JSON format only, with the corrected code and explanations according 
         print(f"Error in request_improvement_dte: {str(e)}")
         return None
 
-def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, refine_problem_understanding, failure_history, used_solution, show_coT=False):  # Due to failed cases (logic/approach issue)
+def request_improvement_dtfc(model, tokenizer, generated_code, failed_tests, refine_problem_understanding, failure_history, show_coT=False):  # Due to failed cases (logic/approach issue)
     try:
         if show_coT:
             print("Step 8.2: Iterating on failed test cases:")
         return model_response(
             model, 
             tokenizer, 
-            reflect_failed_test(generated_code, failed_tests, refine_problem_understanding, failure_history, used_solution), 
+            reflect_failed_test(generated_code, failed_tests, refine_problem_understanding, failure_history), 
             show_coT=show_coT, 
             system_prompt="""
-Act as an independent, autonomous coding agent with the task of thoroughly solving the problem. Focus on reflecting on all failure points and propose a new, comprehensive solution to address the issues from the failed test cases, prioritizing fresh strategies over incremental fixes.
+Act as an independent, autonomous coding agent with the task of thoroughly solving the problem. Focus on reflecting on all failure points and always propose a new, fresh, revolution strategies over incremental fixes.
 
-Guidelines:
-1. **Deep Analysis of Failures**: Analyze all failed cases in detail to identify root causes. Use `failure_history` to focus on issues that have recurred and those that have persisted through multiple solutions.
-2. **Explore and Experiment**: Develop a fundamentally new approach that differs from any previously attempted solutions listed in `used_solution`. Try different techniques, structures, or logic to avoid previous mistakes and comprehensively address the problem’s requirements.
-3. **Creativity and Innovation**: Do not hesitate to apply a fresh perspective, aiming for a holistic solution. Prioritize simplicity and robustness, keeping the problem’s constraints in mind.
-4. **Avoid Patches**: This solution should not be a patch or incremental improvement but a clean, redesigned approach that addresses the root of each identified issue.
-
+Most importantly, be creative, take risks. When the current approach is not working out!
 Return your new approach in the following JSON format, with no additional comments or explanations.
 """,
             temperature=0.9 
