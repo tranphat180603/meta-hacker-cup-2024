@@ -161,17 +161,8 @@ def get_refine_understanding(model, tokenizer, problem_understanding, test_case_
         if show_coT:
             print("Step 4: Refine problem understandings: ")
         return model_response(model, tokenizer, refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection=reflection, img_understanding = img_understanding), show_coT=show_coT, system_prompt="""
-Task: Refine your understanding of the problem by integrating key insights from various sources.
-Your primary objective is to create a cohesive understanding by combining:
-1. The initial problem statement and constraints.
-2. Observations from analyzing test cases.
-3. Important visual details from the image relevant to the problem.
-
-Consider:
-- Look for any visual patterns or elements in the image that could impact or provide constraints to the solution.
-- Apply patterns identified from test case analysis to find possible edge cases or hidden requirements.
-- If there are insights from previous reflections, apply them to avoid repeating common errors.
-
+Act as an independent, autonomous coding agent tasked with solving the problem effectively.                           
+Refine your understanding of the problem by integrating key insights from various sources.
 Output Requirements:
 - Provide the refined problem understanding in JSON format only, ensuring all updates are clearly reflected.
 """)
@@ -184,6 +175,7 @@ def generate_solution_ideas(model, tokenizer, problem_description, test_case_ana
         if show_coT:
             print("Step 5: Generate solutions")
         return model_response(model, tokenizer ,get_solution_ideas_template(problem_description, test_case_analysis, num_solutions), show_coT=show_coT,system_prompt = """
+Act as an independent, autonomous coding agent tasked with solving the problem effectively. 
 As an innovative problem solver, generate diverse and creative solution ideas for the given programming problem. 
 Think outside the box while ensuring all solutions can pass the provided test cases.
 Aim for a mix of conventional and novel approaches, considering efficiency, scalability, and unique algorithmic techniques.
@@ -198,6 +190,7 @@ def evaluate_solutions_f(model, tokenizer, solution_ideas, refine_problem_unders
         if show_coT:        
             print("Step 6: Evaluating solutions: ")
         return model_response(model, tokenizer ,evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis), show_coT=show_coT,system_prompt = """
+Act as an independent, autonomous coding agent tasked with solving the problem effectively. 
 Critically evaluate the provided solution ideas against the refined problem understanding and test cases. 
 Select the optimal solution considering code simplicity, robustness, efficiency, and scalability relative to the problem's difficulty. 
 Provide a concise, objective assessment in the specified JSON format only.

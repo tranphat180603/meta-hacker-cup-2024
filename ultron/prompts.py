@@ -104,6 +104,11 @@ Focus on capturing:
 """
 
 def analyze_original_test_cases_template(problem_description, reflection=""):
+    # Extract `general_formula_update` from reflection if provided
+    general_formula_update = (
+        reflection.get("general_formula_update", "") if isinstance(reflection, dict) else ""
+    )
+
     reflection_section = f"""
 Here is the reflection from previous iterations:
 '{reflection}'
@@ -119,6 +124,11 @@ Instructions:
     "Summarize updates made based on reflection insights."
   ],
   """ if reflection else ""
+
+    # Conditionally include the "general_formula" field if reflection exists
+    general_formula_field = (
+        f'"general_formula": "{general_formula_update}"' if reflection else ""
+    )
 
     return f"""
 Task: Based on the problem description: 
@@ -178,14 +188,16 @@ Choose only the first test case to analyze.
     "problem_solving_hints": [
       "List hints or strategies derived from key_observations for approaching this problem."
     ],
-    "general_formula": "If applicable, provide a general formula or rule observed from problem_solving_hints and key_observations."
+    {general_formula_field}
   }}
 }}
 
 Ensure that your analysis in the 'test_case_reflection' section captures general insights that go beyond the specific example, providing patterns and hints applicable to other cases.
 """
 
+
 def refine_problem_understanding_template(problem_understanding, test_case_analysis, reflection="", img_understanding=""):
+    # Optional sections based on inputs
     reflection_section = f"""
 Here is the reflection from previous iterations:
 '{reflection}'
@@ -196,10 +208,16 @@ Here is the image understanding:
 '{img_understanding}'
 """ if img_understanding else ""
 
-    # Modify the general_formula_update field to include reflection if provided
-    general_formula_update = (
-        f"Update the general formula if applicable based on '{test_case_analysis.get('test_case_reflection', {})}'"
-        + (f" and reflection insights." if reflection else "")
+    # Extract `general_formula_update` from reflection if it exists
+    if reflection:
+      general_formula_update = (
+          reflection.get("general_formula_update", "") if isinstance(reflection, dict) else ""
+      )
+
+    # Conditionally include "general_formula_update" field; add instruction if not available
+    general_formula_update_field = (
+        f'"general_formula_update": "{general_formula_update}",' if general_formula_update else 
+        '"general_formula_update": "Come up with a specific, condensend formula or algorithm instructions that will help solve the problem!",'
     )
 
     return f"""
@@ -217,13 +235,16 @@ Here is the original understanding:
 
 Here is the test case analysis:
 '{test_case_analysis}'
-{reflection_section}{img_understanding_section}
+
+{reflection_section}
+
+{img_understanding_section}
 
 Provide the refined problem understanding in JSON format:
 {{
   "refined_problem_understanding": {{
-    {"changes_based_on_reflection": ["Summarize updates made based on reflection insights."] if reflection else ""}
-    {"image_insights": ["Summarize specific updates based on image insights."] if img_understanding else ""}
+    "changes_based_on_reflection": {["Summarize updates made based on reflection insights."] if reflection else []},
+    "image_insights": {["Summarize specific updates based on image insights."] if img_understanding else []},
     "goal": "State the refined objective of the problem.",
     "updated_constraints": "List updated constraints and any new limitations discovered.",
     "test_cases_update": {{
@@ -237,13 +258,21 @@ Provide the refined problem understanding in JSON format:
       "updated_difficulty": "Reassess the problem difficulty (easy, medium, hard, super hard).",
       "justification": "Explain the reasoning for the updated difficulty."
     }},
-    "general_formula_update": "{general_formula_update}"
+    {general_formula_update_field}
   }}
 }}
 """
 
 
 def get_solution_ideas_template(refine_problem_understanding, test_case_analysis, num_solutions):
+    # Extract `general_formula_update` from `refine_problem_understanding` using `get`
+    general_formula_update = refine_problem_understanding.get("refined_problem_understanding", {}).get("general_formula_update", "")
+
+    # Conditionally include `general_formula_update` field if it exists
+    general_formula_update_field = (
+        f'"general_formula_update": "{general_formula_update}",' if general_formula_update else ""
+    )
+
     return f"""
 Task: Based on your understanding of the problem:
 
@@ -260,7 +289,7 @@ Use the existing general formula from `refine_problem_understanding` to maintain
 Provide the ideas in valid JSON format following the structure below.
 Note that: there must not be any text outside of the JSON format for validity!
 {{
-  "general_formula_update": Rewrite exactly like the formula here "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
+  {general_formula_update_field}
   "solutions": [
     {{
       "name": "Give the name or category of the first approach.",
@@ -270,43 +299,18 @@ Note that: there must not be any text outside of the JSON format for validity!
 }}
 """
 
-def evaluate_solutions_template(solution_ideas, refine_problem_understanding, test_case_analysis):
-    return f"""
-Task: You are given multiple solutions based on the analysis of the solution ideas: 
-
-'{solution_ideas}'. 
-
-Your goal is to choose the best solution based on the description below.
-
-Problem goal:
-Goal: "{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal specified')}"
-
-Test case analysis:
-{test_case_analysis}
-
-Guidelines:
-- The main consideration should be that the solution can fully solve the problem in a simple and robust manner, especially given the difficulty level ("{refine_problem_understanding.get('refined_problem_understanding', {}).get('difficulty_assessment_update', 'No assessment')}").
-- Ensure the solution has a reasonable runtime - less than three seconds on a modern computer, based on the problem's constraints, including large inputs.
-- Consider trade-offs between simplicity, robustness, and efficiency depending on the problem's difficulty.
-
-Provide your evaluation in the following JSON format:
-{{
-    "selected_solution": {{
-        "general_formula_update": Rewrite exactly what you see here: "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
-        "solution_name": "The name of the chosen solution",
-        "justification": {{
-            "goal_alignment": "Explain how the solution addresses the main goal of the problem: \"{refine_problem_understanding.get('refined_problem_understanding', {}).get('goal', 'No goal provided')}\".",
-            "constraint_handling": "Evaluate how well the solution meets the problem's constraints: \"{refine_problem_understanding.get('refined_problem_understanding', {}).get('updated_constraints', 'No constraints provided')}\".",
-            "important_ideas": "Explain how the solution incorporates key ideas from the problem understanding: \"{refine_problem_understanding.get('refined_problem_understanding', {}).get('important_ideas_update', 'No key ideas provided')}\".",
-            "edge_case_handling": "Evaluate how the solution handles edge cases (if applicable).",
-            "time_efficiency": "Provide the estimated time complexity and evaluate if it's suitable given the constraints.",
-            "space_efficiency": "Provide the estimated space complexity and evaluate if it's efficient."
-        }},
-    }}
-}}
-"""
 
 def get_code_generation_template(selected_solution, test_case_analysis, refine_problem_understanding):
+    # Safely access `general_formula_update` from `refine_problem_understanding`
+    general_formula_update = (
+        refine_problem_understanding.get("refined_problem_understanding", {}).get("general_formula_update", "")
+    )
+
+    # Conditionally include `general_formula_update` field if it exists
+    general_formula_update_field = (
+        f'"general_formula_update": "{general_formula_update}",' if general_formula_update else ""
+    )
+
     return f"""
 You are tasked with generating Python code for the solution: 
 {selected_solution}
@@ -321,28 +325,20 @@ And your own understanding of the problem:
 Follow the instructions below:
 
 Code generation guidelines:
-1. Your code should solve the problem and pass all test cases, using the specified input-output structure. 
+1. Your code should be valid Python code.
 2. Divide the code into small, well-named sub-functions.
-3. Use Python's built-in `input()` function to handle input directly.
+3. Always use Python's built-in `input()` function to handle input directly.
 4. Ensure the code can correctly process the provided `sample_input` and produce the expected `sample_output`.
-5. Do not include any error handling (`try...except`), and do not raise any exceptions as errors will be captured separately.
-6. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
+5. Always include an `if __name__ == '__main__':` block, ensuring the code is executable as a standalone script.
 
-##IMPORTANT:***
-IN ANY GIVEN CIRCUMSTANCES, MUST NEVER use `sys.stdin` or `input = sys.stdin.read` since it will definitely affect the performance of the process!
+##SUPER IMPORTANT:***
+IN ANY GIVEN CIRCUMSTANCES, DO NOT USE "input = sys.stdin.read" and/or "sys.stdin.readline()" since it will definitely affect the performance of the process!
 
-The output must always follow this example structure:
-Case #1: YES
-Case #2: NO
-Case #3: YES
-Case #4: NO
-Case #5: NO
-
-Provide the Python code in the following JSON format. Note that newlines within the `"code"` field should be represented by `\\n` to ensure JSON compatibility:
+Provide the Python code in the following JSON format. Note that newlines within the `"code"` field should be represented by "\\n" to ensure JSON compatibility:
 
 {{
   "solution_code": {{
-    "general_formula_update": Rewrite exactly what you see here "{refine_problem_understanding.get('refined_problem_understanding', {}).get('general_formula_update', '')}",
+    {general_formula_update_field}
     "sample_input": "Extract the correct first test case input",
     "sample_output": "Expected output for the first test case",
     "language": "Python",
@@ -353,7 +349,18 @@ Provide the Python code in the following JSON format. Note that newlines within 
 }}
 """
 
+
 def reflect_execution_error(generated_code, error_message, test_case_analysis, error_history):
+    # Extract `general_formula_update` from generated_code if it exists
+    general_formula_update = (
+        generated_code.get("solution_code", {}).get("general_formula_update", "")
+        if isinstance(generated_code, dict) else ""
+    )
+
+    general_formula_update_field = (
+        f'"general_formula_update": "{general_formula_update}",' if general_formula_update else ""
+    )
+
     return f"""
 Task: The generated code has encountered an execution or runtime issue:
 
@@ -362,7 +369,7 @@ Task: The generated code has encountered an execution or runtime issue:
 Current code and some information:
 '{generated_code}'
 
-The test case analysis
+The test case analysis:
 {test_case_analysis}
 
 Error History:
@@ -387,12 +394,13 @@ Provide your analysis in the JSON format below, focusing on clearly articulating
       "problematic_line": "Specific line(s) causing the error",
       "proposed_fix": "Exact correction for the line(s)"
     }}
-  }}
+  }},
+  {general_formula_update_field}
 }}
 """
 
-
 def reflect_failed_test(generated_code, failed_tests, refine_problem_understanding, failure_history):
+    # Include failure history if provided
     failure_history_section = ""
     if failure_history:
         failure_history_section = f"""
@@ -403,10 +411,21 @@ Use this information to identify patterns, avoid reusing approaches that frequen
 {failure_history}
 """
 
+    # Safely access `general_formula_update` from `refine_problem_understanding`
+    general_formula_update = (
+        refine_problem_understanding.get("refined_problem_understanding", {}).get("general_formula_update", "")
+    )
+
+    # Conditionally include `general_formula_update` field if it exists
+    general_formula_update_field = (
+        f'"general_formula_update": "Update the new formula based on new data. Here\'s the older formula that you generated: \'{general_formula_update}\'",' 
+        if general_formula_update else ""
+    )
+
     return f"""
 Task: Carefully analyze the failed test cases and failure history. Identify recurring patterns, underlying logic issues, and constraints that may be causing these failures. Your goal is to provide a comprehensive reflection that offers insights for significant improvement and adaptation to avoid repeating similar mistakes.
 
-This iteration fail on these tests:
+This iteration failed on these tests:
 {failed_tests}
 
 Current Code:
@@ -422,17 +441,13 @@ Instructions:
 - Use the occurrence counts to identify the most frequent failures and prioritize redesigning these parts of the approach.
 - Develop a new strategy that differs fundamentally from previously failed approaches recorded in `failure_history`.
 
-Reflect on the issues in JSON format, capturing the core issues, any new or alternative approaches suggested, and specific changes for future solutions.
+Reflect on the issues in JSON format, capturing the core issues, any new or alternative approaches suggested, specific changes for future solutions, and updates to the general formula.
 
 {{
   "reflection": {{
     "patterns_in_failures": [
       {{
-        "pattern_description": "Describe any repeating patterns or issues observed across failed cases.",
-        "examples": [
-          "Provide examples of test cases where this pattern occurred.",
-          "Include failed cases like those mentioned in failure history to support the pattern."
-        ]
+        "pattern_description": "Describe any repeating patterns or issues observed across failed cases."
       }}
     ],
     "revised_strategy": [
@@ -449,7 +464,8 @@ Reflect on the issues in JSON format, capturing the core issues, any new or alte
           "current_approach": "Current code logic that led to failure",
           "proposed_fix": "Updated or new code snippet that addresses the failure, avoiding reuse of solutions that have previously failed."
         }}
-      ]
+      ],
+      {general_formula_update_field}
     }},
     "learning_points": {{
       "insights": [

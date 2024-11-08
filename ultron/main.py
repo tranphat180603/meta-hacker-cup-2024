@@ -164,6 +164,8 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
     # Reflect after every iteration
     reflection = ""
 
+    #track code refinement
+    refinement_n = 0
     while attempts < code_iterations:
         print(f"Iterate attempt #{attempts + 1}/{code_iterations}")
 
@@ -179,7 +181,7 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             max_num_retry, 
             model, 
             tokenizer,
-            understand['understanding'], 
+            understand, 
             analysis,
             reflection,
             img_understanding,
@@ -194,7 +196,7 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             generate_solution_ideas, max_num_retry, 
             model, 
             tokenizer,
-            refine_understanding['refined_problem_understanding'], 
+            refine_understanding, 
             analysis, 
             num_solutions=5, 
             show_coT=show_coT
@@ -209,8 +211,8 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             max_num_retry, 
             model, 
             tokenizer,
-            solutions['solutions'], 
-            refine_understanding['refined_problem_understanding'], 
+            solutions, 
+            refine_understanding, 
             analysis, 
             show_coT=show_coT
         )
@@ -224,9 +226,9 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             max_num_retry, 
             model,
             tokenizer,
-            evaluate_solutions['selected_solution'], 
+            evaluate_solutions, 
             analysis,
-            refine_understanding['refined_problem_understanding'],
+            refine_understanding,
             show_coT=show_coT
         )
         if not code_solution:
@@ -264,39 +266,51 @@ def run_full_process(model, tokenizer, img_model, img_tokenizer, problem_descrip
             failed_tests = retry(request_improvement_dtfc, max_num_retry, model, tokenizer, code_solution['solution_code'], str(failed_cases), refine_understanding, failure_history, show_coT=show_coT)
             reflection = failed_tests
         elif error:  # Handle execution/runtime errors
-            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution['solution_code'], error, analysis, error_history, show_coT=show_coT)
+            execution_error = retry(request_improvement_dte, max_num_retry, model, tokenizer, code_solution, error, analysis, error_history, show_coT=show_coT)
             reflection = execution_error
 
         attempts += 1
 
         # If we achieve a perfect score, iterate more with ai-generated tests
         if best_score == 100:
-            while refinement_n < refinement_num:
-                timeout_msg = None
-                print("Perfect score achieved on sample test cases!")
-                print("Push one more step further, improve the program efficiency!")
-                final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding,timeout_msg ,show_coT=show_coT)
-                final_code = final_code["optimization"]["optimized_code"]
+            print("Perfect score achieved on sample test cases!")
+            print("Checking this code compatibility on the full input set...")
+            final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+            best_code, test_input=test_input, test_output=test_output
+            )
+            if final_score == 100:
+                print("Nailed this problem")
+                return final_score, best_code
+            else:
+                while refinement_n < refinement_num:
+                    print("Current code passed on test set but failed on the full set.")
+                    timeout_msg = None
+                    print("Push one more step further, improve the program efficiency...")
+                    final_code = retry(request_final_improvement, max_num_retry, model, tokenizer, generated_code, refine_understanding,timeout_msg ,show_coT=show_coT)
+                    final_code = final_code["optimization"]["optimized_code"]
 
-                check_result, error = run_extracted_code_with_timeout(final_code, full_input)
-                
-                # Only evaluate if there’s a valid result from the code execution
-                if check_result:
-                    final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
-                        check_result, test_input=test_input, test_output=test_output
-                    )
-                    if final_score == 100:
-                        print("Nailed this problem!")
-                        best_code = final_code  # Corrected assignment here
-                        return best_code, best_score
-                else:
-                    print(f"Error encountered: {error}")
+                    check_result, error = run_extracted_code_with_timeout(final_code, full_input)
+                    
+                    # Only evaluate if there’s a valid result from the code execution
+                    if check_result:
+                        final_score, error, generated_output, failed_cases = evaluate_generated_code_on_test_cases(
+                            check_result, test_input=test_input, test_output=test_output
+                        )
+                        if final_score == 100:
+                            print("Nailed this problem!")
+                            best_code = final_code  # Corrected assignment here
+                            return best_code, best_score
+                        else:
+                            print("Optimized code didn't successfully passed on the full test case. \nRegenerating...")
+                    else:
+                        print(f"Error encountered: {error}")
 
-                timeout_msg = error    
-                generated_code = final_code
-                refinement_n += 1
-            print("Code couldn't execute on full inputs")
-            return best_code, best_score
+                    timeout_msg = error    
+                    generated_code = final_code
+                    refinement_n += 1
+                print("Code couldn't execute on full inputs")
+                return best_code, best_score
+            
 
     return best_code, best_score
 
