@@ -1,0 +1,1 @@
+ERROR processing problem 1/1: Walk the Line, Error: local variable 'img_understanding' referenced before assignment

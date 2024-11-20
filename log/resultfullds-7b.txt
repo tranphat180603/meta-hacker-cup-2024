@@ -1,0 +1,284 @@
+Problem 68/284: ready_go_part_2, Failed to find solution after 15 iterations
+Problem 69/284: wiki_race, Failed to find solution after 15 iterations
+Problem 71/284: dim_sum_delivery, Score: 66.66666666666666%
+Problem 72/284: cheeseburger_corollary_ch1, Score: 71.42857142857143%
+Problem 74/284: cheeseburger_corollary_ch2, Score: 50.0%
+Problem 79/284: krabotage, Failed to find solution after 15 iterations
+Problem 94/284: back_in_black_ch1, Score: 20.0%
+Problem 96/284: second_second_meaning, Failed to find solution after 15 iterations
+Problem 97/284: second_second_friend, Failed to find solution after 15 iterations
+Problem 99/284: second_friend, Score: 50.0%
+Problem 100/284: second_meaning, Score: 30.0%
+Problem 103/284: work_life_balance_ch2, Failed to find solution after 15 iterations
+Problem 105/284: balance_sheet, Score: 25.0%
+Problem 107/284: first_time_ch2, Failed to find solution after 15 iterations
+Problem 110/284: second_mistake, Score: 100.0%
+Problem 117/284: cup_counterbalancing, Failed to find solution after 15 iterations
+Problem 123/284: watering_well_ch2, Score: 100.0%
+ERROR processing problem 1/284: new_years_resolution, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 2/284: cooking_the_books, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 3/284: laser_maze, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 4/284: lazy_sort, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 5/284: fox_socks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 6/284: all_critical, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 7/284: autocomplete_strikes_back, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 8/284: lunch_scheduling, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 9/284: gentrification, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 10/284: boomerang, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 11/284: fox_rocks, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 12/284: fox_locks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 13/284: fox_blocks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 14/284: fox_lochs, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 15/284: fox_hawks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 16/284: fox_focks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 17/284: corporate_gifting, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 18/284: winning_at_sports, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 19/284: homework, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 20/284: autocomplete, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 21/284: lazyloading, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 22/284: progresspie, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 23/284: fightingthezombie, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 24/284: bigtop, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 25/284: rainovernewyork, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 26/284: subtlesabotage, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 27/284: fightingallthezombies, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 28/284: salientstrings, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 29/284: steadfastsnakes, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 30/284: brokenbits, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 31/284: piepackages, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 32/284: sluggishsecurity, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 33/284: holes, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 34/284: strolls, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 35/284: moles, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 36/284: poles, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 37/284: patrols, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 38/284: tolls, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 39/284: beachumbrellas, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 40/284: pieprogress, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 41/284: fightingthezombies, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 42/284: manicmoving, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 43/284: text_editor, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 44/284: high_security, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 45/284: price, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 46/284: boomerang_constellations, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 47/284: carnival_coins, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 48/284: costly_labels, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 49/284: boomerang_decoration, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 50/284: snakes_and_ladders, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 51/284: boomerang_farm, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 52/284: chess_showdown, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 53/284: boomerang_umbrella, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 54/284: public_transportation, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 55/284: matt_laundro, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 56/284: rng, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 57/284: boomerang_crews, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 58/284: rainbow_string, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 59/284: snake_and_ladder, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 60/284: grundy_graph, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 61/284: maximinimax_flow, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 62/284: laundro_matt, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 63/284: boomerang_tournament, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 64/284: coding_contest, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 65/284: yachtzee, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 66/284: meta_game, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 67/284: tower_rush, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 70/284: ready_go_part_1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 73/284: two_apples_a_day, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 75/284: road_to_nutella, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 76/284: spooky_splits, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 77/284: similar_ships, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 78/284: double_stars, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 80/284: hash_slinger, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 81/284: cacti_cartography, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 82/284: transposing_tiles, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 83/284: dealing_decks, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 84/284: programming_paths_part_2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 85/284: nearly_nim, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 86/284: resisting_robots, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 87/284: programming_paths_part_1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 88/284: sum_41_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 89/284: bohemian_rap-sody, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 90/284: sum_41_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 91/284: today_is_gonna_be_a_great_day, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 92/284: here_comes_santa_claus, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 93/284: back_in_black_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 95/284: second_hands, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 98/284: second_flight, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 101/284: perfectly_balanced_ch2, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 102/284: balance_scale, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 104/284: perfectly_balanced_ch1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 106/284: work_life_balance_ch1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 108/284: zero_crossings_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 109/284: third_trie, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 111/284: fourth_player, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 112/284: zero_crossings_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 113/284: first_time_ch1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 114/284: ml_modeling, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 115/284: alphabet_adventuring, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 116/284: hazelnut_harvesting, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 118/284: emerald_exhibiting, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 119/284: tile_transposing, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 120/284: watering_well_ch1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 121/284: consecutive_cuts_ch2, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 122/284: lemonade_life, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 124/284: consecutive_cuts_ch1, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 125/284: balanced_smileys, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 126/284: beautiful_strings, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 127/284: find_the_min, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 128/284: cake_cutting, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 129/284: permutations, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 130/284: roboelection, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 131/284: name_the_baby, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 132/284: greedy_entertainers, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 133/284: digits_war, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 134/284: minesweeping, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 135/284: archiver, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 136/284: teleports, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 137/284: colored_trees, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 138/284: dead_pixels, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 139/284: card_game, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 140/284: security, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 141/284: gold_mine_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 142/284: consistency_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 143/284: consistency_ch2, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 144/284: gold_mine_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 145/284: xs_and_os, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 146/284: valet_parking_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 147/284: runway, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 148/284: chainblock, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 149/284: string_concatenation, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 150/284: valet_parking_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 151/284: rep-ore-ting, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 152/284: expl-ore-ation_ch3, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 153/284: perf-ore-mance, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 154/284: expl-ore-ation_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 155/284: auth-ore-ization, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 156/284: expl-ore-ation_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 157/284: antisocial, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 158/284: vacation, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 159/284: table_flipping, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 160/284: hire_flyers, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 161/284: and, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 162/284: ssssss, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 163/284: traffic_control, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 164/284: weak_typing_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 165/284: weak_typing_ch3, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 166/284: weak_typing_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 167/284: blockchain, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 168/284: mr_x, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 169/284: service_trees, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 170/284: leapfrog2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 171/284: leapfrog1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 172/284: seafood, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 173/284: bitstrings_as_a_service, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 174/284: on_the_run, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 175/284: grading, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 176/284: renovations, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 177/284: integers_as_service, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 178/284: chain_of_command, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 179/284: light_show, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 180/284: cold_storage, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 181/284: temporal_revision, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 182/284: khajiit, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 183/284: little_boat_on_the_sea, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 184/284: scoreboard, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 185/284: strings_as_a_service, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 186/284: graphs_as_a_service, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 187/284: class_treasurer, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 188/284: connect_the_dots, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 189/284: ladders_and_snakes, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 190/284: studious_student, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 191/284: peg_game, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 192/284: double_squares, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 193/284: diminishing_circle, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 194/284: slot_machine_hacker, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 195/284: chess_2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 196/284: scotts_new_trick, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 197/284: bonus_assignments, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 198/284: studious_student_ii, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 199/284: wine_tasting, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 200/284: turn_on_the_lights, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 201/284: diversity_number, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 202/284: party_time, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 203/284: safest_place, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 204/284: alien_game, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 205/284: polynomial_factoring, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 206/284: risky_slide, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 207/284: n_factorful, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 208/284: alchemy, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 209/284: travel_restrictions, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 210/284: timber, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 211/284: running_on_fumes_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 212/284: running_on_fumes_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 213/284: elimination, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 214/284: log_drivin_hirin, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 215/284: capastaty, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 216/284: circular_circles, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 217/284: railroad_renovations, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 218/284: smart_carts, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 219/284: mail_security, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 220/284: chain_explosions, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 221/284: cryptoconference, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 222/284: tree_training, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 223/284: spider_spring, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 224/284: somebody_elses_problem, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 225/284: cake_cutting_committee, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 226/284: pond_precipitation, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 227/284: quarantine, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 228/284: dislodging_logs, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 229/284: perimetric_ch1, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 230/284: perimetric_ch3, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 231/284: perimetric_ch2, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 232/284: billboards, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 233/284: alphabet_soup, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 234/284: auction, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 235/284: road_removal, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 236/284: monopoly, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 237/284: sequence_slicing, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 238/284: divisor_function_optimization, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 239/284: trapezoids, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 240/284: unfriending, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 241/284: linsane_phone_numbers, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 242/284: possible_medians, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 243/284: maximal_multiplicative_order, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 244/284: checkpoint, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 245/284: recover_the_sequence, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 246/284: squished_status, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 247/284: ethanstring, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 248/284: interception, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 249/284: tourist, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 250/284: fossil_fuels, Error: cannot unpack non-iterable NoneType object
+ERROR processing problem 251/284: jacks_candy_shop, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 252/284: ethan_path, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 253/284: replay_value, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 254/284: finshakes, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 255/284: ethan_max_subarray, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 256/284: jammin, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 257/284: graph_gift, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 258/284: claw, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 259/284: ethan, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 260/284: contest, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 261/284: personal, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 262/284: stockholm, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 263/284: citylights, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 264/284: ethantree, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 265/284: platform, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 266/284: letitflow, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 267/284: evening, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 268/284: square_detector, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 269/284: tennison, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 270/284: basketball_game, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 271/284: holdem_numbers, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 272/284: ski_resort_planning, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 273/284: magic_pairs, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 274/284: pizza_baking, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 275/284: restaurant_chains, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 276/284: secret_santa, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 277/284: intervals_of_love, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 278/284: fortunate_wheels, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 279/284: lunch_at_facebook, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 280/284: tours, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 281/284: coins_game, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 282/284: preventing_alzheimers, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 283/284: aaaaaa, Error: 'NoneType' object has no attribute 'replace'
+ERROR processing problem 284/284: labelmaker, Error: 'NoneType' object has no attribute 'replace'

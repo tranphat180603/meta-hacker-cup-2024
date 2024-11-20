@@ -1,0 +1,7 @@
+Using model: Qwen/Qwen2.5-72B-Instruct
+Processing all 5 problems in the folder
+Processing problems:   0%|          | 0/5 [00:00<?, ?problem/s]
+Running problem 1/5 Cottontail Climb (Part 1)
+Parsing JSON attempts: #1
+Step 1: Understanding problem:
+Processing problems:   0%|          | 0/5 [00:25<?, ?problem/s]

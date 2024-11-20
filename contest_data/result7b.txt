@@ -1,0 +1,5 @@
+Problem 1/5: Line by Line, Failed to find solution after 15 iterations
+Problem 2/5: Line of Delivery (Part 1), Score: 50.0%
+Problem 3/5: Walk the Line, Failed to find solution after 15 iterations
+Problem 4/5: Line of Delivery (Part 2), Score: 20.0%
+ERROR processing problem 5/5: Fall in Line, Error: cannot unpack non-iterable NoneType object
